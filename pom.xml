@@ -48,6 +48,12 @@
             <version>2.7.0</version>
         </dependency>
 
+        <!--实体对象工具类：低版本idea需要安装lombok插件-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
