@@ -17,3 +17,12 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    #sql日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  .global-config:
+    db-config:
+      #忽略数据库表头名
+      table-prefix: t_
