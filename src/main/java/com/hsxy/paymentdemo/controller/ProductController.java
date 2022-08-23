@@ -19,7 +19,7 @@ import java.util.Date;
 @Api(tags = "商品管理 Product")
 @RestController
 @RequestMapping("/api/product")
-@CrossOrigin //跨域P
+@CrossOrigin //跨域
 public class ProductController {
 	
 	@ApiOperation("Test接口")
