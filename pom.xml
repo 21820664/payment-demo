@@ -68,7 +68,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!--wechatpay-sdk-->
+        <!--wechatpay SDK(注意与3.x版本代码有异动)-->
         <dependency>
             <groupId>com.github.wechatpay-apiv3</groupId>
             <artifactId>wechatpay-apache-httpclient</artifactId>
@@ -81,6 +81,8 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.76</version>
         </dependency>
+
+
     </dependencies>
 
     <dependencyManagement>
