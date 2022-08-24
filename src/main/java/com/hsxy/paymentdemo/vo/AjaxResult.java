@@ -2,6 +2,7 @@ package com.hsxy.paymentdemo.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 @Data
 @AllArgsConstructor
+@Accessors(chain = true)
 public class AjaxResult {
 	private Integer code;
 	private String message;

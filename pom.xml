@@ -82,7 +82,11 @@
             <version>1.2.76</version>
         </dependency>
 
-
+        <!--json处理-->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
