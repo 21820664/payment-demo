@@ -12,6 +12,7 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import lombok.Data;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -101,8 +102,8 @@ public class WxPayConfig {
 		 * ---putMerchant需抛出异常
 		 */
 		//格式优化:(4.x版本)新版主要的不同就是这里，微信官方的SDK帮我们自动处理了验签之类的流程
-		/*certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
-				new PrivateKeySigner(mchSerialNo, privateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));*/
+		certificatesManager.putMerchant(mchId, new WechatPay2Credentials(mchId,
+				new PrivateKeySigner(mchSerialNo, privateKey)), apiV3Key.getBytes(StandardCharsets.UTF_8));
 		certificatesManager.putMerchant(mchId,wechatPay2Credentials,apiV3Key.getBytes(StandardCharsets.UTF_8));
 		// 使用定时更新的签名验证器，不需要传入证书(3.x版本,淘汰)
 		/*ScheduledUpdateCertificatesVerifier verifier = new ScheduledUpdateCertificatesVerifier(wechatPay2Credentials, apiV3Key.getBytes(StandardCharsets.UTF_8));*/
@@ -136,6 +137,5 @@ public class WxPayConfig {
 		// 后面跟使用Apache HttpClient一样
 		//CloseableHttpResponse response = httpClient.execute(...);
 	}
-	
 	
 }
