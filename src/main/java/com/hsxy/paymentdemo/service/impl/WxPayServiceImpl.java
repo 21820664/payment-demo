@@ -10,6 +10,7 @@ import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -47,7 +48,17 @@ public class WxPayServiceImpl implements WxPayService {
 		
 		log.info("1.生成订单");
 		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId);
-		// TODO WU: 存入数据库
+		
+		// DO WU: 存入数据库
+		String codeUrl = orderInfo.getCodeUrl();
+		if(!StringUtils.isBlank(codeUrl)){
+			log.info("订单(二维码)已存在");
+			//返回二维码
+			Map<String, Object> map = new HashMap<>();
+			map.put("codeUrl", codeUrl);
+			map.put("orderNo", orderInfo.getOrderNo());
+			return map;//返回二维码和订单编号
+		}
 		
 		log.info("2.调用统一下单API");
 		HttpPost httpPost = new HttpPost(wxPayConfig.getDomain().concat(WxApiType.NATIVE_PAY.getType()));//避免输入一大串:https://api.mch.weixin.qq.com/v3/pay/transactions/native
@@ -97,7 +108,11 @@ public class WxPayServiceImpl implements WxPayService {
 			//响应结果
 			Map<String, String> resultMap = gson.fromJson(bodyAsString, HashMap.class);
 			//二维码
-			String codeUrl = resultMap.get("code_url");
+			codeUrl = resultMap.get("code_url");
+			
+			//保存二维码到数据库
+			String orderNo = orderInfo.getOrderNo();
+			orderInfoService.saveCodeUrl(orderNo,codeUrl);
 			
 			Map<String, Object> map = new HashMap<>();
 			map.put("codeUrl", codeUrl);

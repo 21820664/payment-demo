@@ -65,10 +65,21 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 					// queryWrapper.eq("user_id", userId);
 					//自己另加:还应该价格一致(避免优惠活动影响)
 					.eq(OrderInfo::getTotalFee,productMapper.selectById(productId).getPrice())
-					//判断订单创建时间是否小于5分钟(避免短时间生成多个未支付订单)
-					.apply("TIMESTAMPDIFF(MINUTE, create_time , now()) < 1")
+					//判断订单创建时间是否小于2小时(避免短时间生成多个未支付订单)<微信支付订单二维码最长生效时间为2小时>
+					.apply("TIMESTAMPDIFF(HOUR, create_time , now()) < 2")
 					//增加查询效率，只查询一条	(和selectOne()搭配,不可少)
 					.last("limit 1");
 		return baseMapper.selectOne(queryWrapper);
 	}
+	
+	@Override
+	public void saveCodeUrl(String orderNo, String codeUrl) {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(OrderInfo::getOrderNo, orderNo);
+		OrderInfo orderInfo = new OrderInfo();
+		orderInfo.setCodeUrl(codeUrl);
+		baseMapper.update(orderInfo, queryWrapper);
+	}
+	
 }
