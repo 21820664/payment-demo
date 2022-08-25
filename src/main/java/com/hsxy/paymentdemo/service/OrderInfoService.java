@@ -3,6 +3,8 @@ package com.hsxy.paymentdemo.service;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 public interface OrderInfoService extends IService<OrderInfo> {
 	
 	/**
@@ -18,4 +20,11 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	 * @return void
 	 */
 	void saveCodeUrl(String orderNo, String codeUrl);
+	
+	/**
+	 * @Description 查询订单列表，并倒序查询(倒序一般交给前端处理)
+	 * @Param []
+	 * @return java.util.List<com.hsxy.paymentdemo.entity.OrderInfo>
+	 */
+	List<OrderInfo> listOrderByCreateTimeDesc();
 }

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -80,6 +81,14 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		OrderInfo orderInfo = new OrderInfo();
 		orderInfo.setCodeUrl(codeUrl);
 		baseMapper.update(orderInfo, queryWrapper);
+	}
+	
+	@Override
+	public List<OrderInfo> listOrderByCreateTimeDesc() {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.orderByDesc(OrderInfo::getCreateTime);
+		return baseMapper.selectList(queryWrapper);
 	}
 	
 }
