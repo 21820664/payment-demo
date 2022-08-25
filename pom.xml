@@ -87,6 +87,16 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+
+        <!--跟java.lang这个包的作用类似，
+        Commons Lang这一组API也是提供一些基础的、通用的操作和处理，
+        如自动生成toString()的结果、自动实现hashCode()和equals()方法、
+        数组操作、枚举、日期和时间的处理等等。-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

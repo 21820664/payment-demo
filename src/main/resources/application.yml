@@ -26,3 +26,8 @@ mybatis-plus:
     db-config:
       #忽略数据库表头名
       table-prefix: t_
+
+# 开启debug日志
+logging:
+  level:
+    root: info

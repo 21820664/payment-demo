@@ -6,6 +6,7 @@ import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
+import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -38,15 +39,14 @@ public class WxPayServiceImpl implements WxPayService {
 	@Resource
 	private CloseableHttpClient wxPayClient;
 	
+	@Resource
+	private OrderInfoService orderInfoService;
+	
 	@Override
 	public Map<String, Object> nativePay(Long productId) throws IOException {
+		
 		log.info("1.生成订单");
-		OrderInfo orderInfo = new OrderInfo();
-		orderInfo.setTitle("test商品标题");
-		orderInfo.setOrderNo(OrderNoUtils.getOrderNo()); //订单号
-		orderInfo.setProductId(productId);
-		orderInfo.setTotalFee(1); //分
-		orderInfo.setOrderStatus(OrderStatus.NOTPAY.getType());
+		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId);
 		// TODO WU: 存入数据库
 		
 		log.info("2.调用统一下单API");

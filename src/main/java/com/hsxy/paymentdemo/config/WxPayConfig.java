@@ -10,6 +10,7 @@ import com.wechat.pay.contrib.apache.httpclient.exception.HttpCodeException;
 import com.wechat.pay.contrib.apache.httpclient.exception.NotFoundException;
 import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.ibatis.annotations.Param;
@@ -35,6 +36,7 @@ import java.security.PrivateKey;
 @PropertySource("classpath:wxpay.properties") //读取配置文件(不从yml文件读取了)
 @ConfigurationProperties(prefix="wxpay") //读取wxpay节点
 @Data //使用set方法将wxpay节点中的值填充到当前类的属性中
+@Slf4j
 public class WxPayConfig {
 	
 	// 商户号( Java文件与配置文件 的对应关系(小驼峰与中划线)自动映射,因此不用加注解映射)
@@ -80,6 +82,7 @@ public class WxPayConfig {
 	@Bean //便于自动执行(启动时一次<单例模式>)
 	public Verifier getVerifier() throws GeneralSecurityException, IOException, HttpCodeException, NotFoundException {
 		
+		log.info("获取签名验证器");
 		//获取商户私钥
 		PrivateKey privateKey = getPrivateKey(privateKeyPath);
 		//私钥签名对象（签名）
@@ -122,6 +125,7 @@ public class WxPayConfig {
 	@Bean
 	public CloseableHttpClient getWxPayClient(Verifier verifier){
 		
+		log.info("获取HttpClient对象");
 		//获取商户私钥
 		PrivateKey privateKey = getPrivateKey(privateKeyPath);
 		
