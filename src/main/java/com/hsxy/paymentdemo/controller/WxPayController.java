@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @name WxPayController
@@ -111,7 +112,8 @@ public class WxPayController {
 			/*Notification notification = wechatPay2ValidatorForRequest.notificationHandler();//旧版需要自己写*/
 			
 			// 从notification中获取解密报文。
-			log.info("解密报文---> {}" , notification.getDecryptData());
+			String plainText = notification.getDecryptData();
+			log.info("解密报文---> {}" , plainText);
 			
 			String eventType = notification.getEventType();
 			if(eventType.length() == 0){
@@ -123,7 +125,8 @@ public class WxPayController {
 			}
 			log.info("支付回调通知验签成功");
 			
-			//TODO : 处理订单
+			//DO : 处理订单:通过解密报文
+			wxPayService.processOrder(plainText);
 			
 			//int i = 3 / 0;
 			// 测试超时应答：添加睡眠时间使应答超时

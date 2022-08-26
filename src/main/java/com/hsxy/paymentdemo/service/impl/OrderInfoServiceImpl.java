@@ -91,4 +91,15 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		return baseMapper.selectList(queryWrapper);
 	}
 	
+	@Override
+	public void updateStatusByOrderNo(String orderNo, OrderStatus orderStatus) {
+		log.info("更新订单状态 ===> {}", orderStatus.getType());
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(OrderInfo::getOrderNo,orderNo);
+		OrderInfo orderInfo = new OrderInfo();
+		orderInfo.setOrderStatus(orderStatus.getType());
+		baseMapper.update(orderInfo, queryWrapper);
+	}
+	
 }

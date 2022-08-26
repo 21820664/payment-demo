@@ -2,6 +2,7 @@ package com.hsxy.paymentdemo.service;
 
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hsxy.paymentdemo.enums.OrderStatus;
 
 import java.util.List;
 
@@ -27,4 +28,11 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	 * @return java.util.List<com.hsxy.paymentdemo.entity.OrderInfo>
 	 */
 	List<OrderInfo> listOrderByCreateTimeDesc();
+	
+	/**
+	 * @Description 更新订单状态
+	 * @Param [orderNo, orderStatus] {订单号,订单状态}
+	 * @return void
+	 */
+	void updateStatusByOrderNo(String orderNo, OrderStatus orderStatus);
 }

@@ -1,5 +1,6 @@
 package com.hsxy.paymentdemo.service;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.Map;
 
@@ -16,4 +17,11 @@ public interface WxPayService {
 	 * @return java.util.Map<java.lang.String, java.lang.Object>
 	 */
 	Map<String, Object> nativePay(Long productId) throws IOException;
+	
+	/**
+	 * @Description 处理订单
+	 * @Param [bodyMap]
+	 * @return void
+	 */
+	void processOrder(String plainText);
 }

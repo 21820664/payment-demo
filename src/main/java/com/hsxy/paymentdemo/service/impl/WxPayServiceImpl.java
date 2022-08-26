@@ -7,6 +7,7 @@ import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
 import com.hsxy.paymentdemo.service.OrderInfoService;
+import com.hsxy.paymentdemo.service.PaymentInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -123,4 +125,28 @@ public class WxPayServiceImpl implements WxPayService {
 		}
 		
 	}
+	
+	@Resource
+	private PaymentInfoService paymentInfoService;
+	@Override
+	public void processOrder(String plainText) {
+		log.info("处理订单");
+		
+		Gson gson = new Gson();
+		//转换明文:将明文转换为Map
+		Map<String, Object> plainTextMap = gson.fromJson(plainText, HashMap.class);
+		//商户订单号
+		String orderNo = (String) plainTextMap.get("out_trade_no");
+		//更新订单状态
+		orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
+		//记录支付日志
+		paymentInfoService.createPaymentInfo(plainText);
+		
+		
+		
+		
+		
+	}
+	
+	
 }
