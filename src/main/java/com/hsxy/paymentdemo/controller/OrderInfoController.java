@@ -2,14 +2,12 @@ package com.hsxy.paymentdemo.controller;
 
 import com.baomidou.mybatisplus.extension.api.R;
 import com.hsxy.paymentdemo.entity.OrderInfo;
+import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.vo.AjaxResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -32,5 +30,15 @@ public class OrderInfoController {
 	public AjaxResult list(){
 		List<OrderInfo> list = orderInfoService.listOrderByCreateTimeDesc();
 		return AjaxResult.ok().data("list", list);
+	}
+	
+	@ApiOperation("查询本地订单状态")
+	@GetMapping("/query-order-status/{orderNo}")
+	public AjaxResult queryOrderStatus(@PathVariable String orderNo) {
+		String orderStatus = orderInfoService.getOrderStatus(orderNo);
+		if (OrderStatus.SUCCESS.getType().equals(orderStatus)) {//支付成功
+			return AjaxResult.ok();
+		}
+		return AjaxResult.ok().setCode(101).setMessage("支付中...");
 	}
 }
