@@ -28,7 +28,7 @@ import java.security.PrivateKey;
 
 /**
  * @name WxPayConfig
- * @Description
+ * @Description 微信支付配置
  * @author WU
  * @Date 2022/8/24 9:20
  */

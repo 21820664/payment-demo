@@ -3,9 +3,15 @@ package com.hsxy.paymentdemo.controller;
 import com.baomidou.mybatisplus.extension.api.R;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.hsxy.paymentdemo.config.WxPayConfig;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.HttpUtils;
 import com.hsxy.paymentdemo.vo.AjaxResult;
+import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
+import com.wechat.pay.contrib.apache.httpclient.auth.WechatPay2Validator;
+import com.wechat.pay.contrib.apache.httpclient.notification.Notification;
+import com.wechat.pay.contrib.apache.httpclient.notification.NotificationHandler;
+import com.wechat.pay.contrib.apache.httpclient.notification.NotificationRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +38,15 @@ import java.util.Map;
 public class WxPayController {
 	@Resource
 	private WxPayService wxPayService;
+	
+	@Resource
+	private WxPayConfig wxPayConfig;
+	
+	/**
+	 * @Description 在WxPayConfig中配置了获取签名验证器:Verifier getVerifier()
+	 */
+	@Resource
+	private Verifier verifier;
 	
 	@ApiOperation("调用统一下单API，生成支付二维码")
 	@PostMapping("/native/{productId}")
@@ -59,13 +75,56 @@ public class WxPayController {
 		Map<String, String> map = new HashMap<>();//应答对象
 		try {
 			
+			String apiV3Key = wxPayConfig.getApiV3Key();
+			//从微信支付回调请求头获取必要信息
+			String wechatPaySerial = request.getHeader("Wechatpay-Serial");//应答平台证书序列号
+			String nonce = request.getHeader("Wechatpay-Nonce");//应答随机串
+			//String nonce = (String) bodyMap.get("nonce");//应答随机串(!不一致,需从请求头获取)
+			String timestamp = request.getHeader("Wechatpay-Timestamp");//时间戳
+			String signature = request.getHeader("Wechatpay-Signature");//签名
+			
 			//处理通知参数
-			String body = HttpUtils.readData(request);
+			String body = HttpUtils.readData(request);//应答主体 [readData(request)同一request只能使用一次 ∵ br.close()]
 			Map<String, Object> bodyMap = gson.fromJson(body, HashMap.class);
-			log.info("支付通知的id ===> {}", bodyMap.get("id"));
+			String notifyId = (String) bodyMap.get("id");//支付通知的id
+			
+			log.info("支付通知的id ===> {}", notifyId);
 			log.info("支付通知的完整数据 ===> {}", body);
-			//TODO : 签名的验证
+			log.info("_________________________");
+			log.info("平台证书序列号 ===> {}", wechatPaySerial);
+			log.info("nonce ===> {}", nonce);
+			log.info("timestamp ===> {}", timestamp);
+			log.info("signature ===> {}", signature);
+			//DO : 签名的验证
+			// 构建request，传入必要参数
+			NotificationRequest notificationRequest = new NotificationRequest.Builder()
+					.withSerialNumber(wechatPaySerial)
+					.withNonce(nonce)
+					.withTimestamp(timestamp)
+					.withSignature(signature)
+					.withBody(body)
+					.build();
+			NotificationHandler handler = new NotificationHandler(verifier, apiV3Key.getBytes(StandardCharsets.UTF_8));
+			//JSON.parseObject，是将Json字符串转化为相应的对象；JSON.toJSONString则是将对象转化为Json字符串.用 Gson.toJson也行
+			// 验签和解析请求体
+			Notification notification = handler.parse(notificationRequest);
+			/*Notification notification = wechatPay2ValidatorForRequest.notificationHandler();//旧版需要自己写*/
+			
+			// 从notification中获取解密报文。
+			log.info("解密报文---> {}" , notification.getDecryptData());
+			
+			String eventType = notification.getEventType();
+			if(eventType.length() == 0){
+				log.error("支付回调通知验签失败");
+				response.setStatus(500);
+				map.put("code","ERROR");
+				map.put("message","失败");
+				return gson.toJson(map);
+			}
+			log.info("支付回调通知验签成功");
+			
 			//TODO : 处理订单
+			
 			//int i = 3 / 0;
 			// 测试超时应答：添加睡眠时间使应答超时
 			//TimeUnit.SECONDS.sleep(5);
