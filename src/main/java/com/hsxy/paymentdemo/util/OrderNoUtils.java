@@ -29,7 +29,7 @@ public class OrderNoUtils {
     }
 
     /**
-     * 获取编号
+     * 获取编号算法(根据时间伪随机生成)
      * @return
      */
     public static String getNo() {

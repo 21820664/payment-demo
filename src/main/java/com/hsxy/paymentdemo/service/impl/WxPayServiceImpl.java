@@ -3,12 +3,14 @@ package com.hsxy.paymentdemo.service.impl;
 import com.google.gson.Gson;
 import com.hsxy.paymentdemo.config.WxPayConfig;
 import com.hsxy.paymentdemo.entity.OrderInfo;
+import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
 import com.hsxy.paymentdemo.enums.wxpay.WxTradeState;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
+import com.hsxy.paymentdemo.service.RefundInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.swing.*;
@@ -285,6 +288,66 @@ public class WxPayServiceImpl implements WxPayService {
 			this.closeOrder(orderNo);
 			//更新本地订单状态
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
+		}
+	}
+	
+	@Resource
+	private RefundInfoService refundsInfoService;
+
+	/**
+	 * @Description 退款
+	 * @Param [orderNo, reason] 订单号,原因
+	 * @return void
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public void refund(String orderNo, String reason) throws IOException {
+		log.info("创建退款单记录");
+		//根据订单编号创建退款单
+		RefundInfo refundsInfo = refundsInfoService.createRefundByOrderNo(orderNo, reason);
+		log.info("调用退款API");
+		//调用统一下单API
+		String url = wxPayConfig.getDomain().concat(WxApiType.DOMESTIC_REFUNDS.getType());
+		HttpPost httpPost = new HttpPost(url);
+		// 请求body参数
+		Gson gson = new Gson();
+		Map paramsMap = new HashMap();
+		paramsMap.put("out_trade_no", orderNo);//订单编号
+		paramsMap.put("out_refund_no", refundsInfo.getRefundNo());//退款单编号
+		paramsMap.put("reason",reason);//退款原因
+		paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.REFUND_NOTIFY.getType()));//退款通知地址
+		//-| 金额
+		Map amountMap = new HashMap();
+		amountMap.put("refund", refundsInfo.getRefund());//退款金额
+		amountMap.put("total", refundsInfo.getTotalFee());//原订单金额
+		amountMap.put("currency", "CNY");//退款币种
+		paramsMap.put("amount", amountMap);
+		//将参数转换成json字符串
+		String jsonParams = gson.toJson(paramsMap);
+		log.info("请求参数 ===> {}" + jsonParams);
+		StringEntity entity = new StringEntity(jsonParams,"utf-8");
+		entity.setContentType("application/json");//设置请求报文格式
+		httpPost.setEntity(entity);//将请求报文放入请求对象
+		httpPost.setHeader("Accept", "application/json");//设置响应报文格式
+		//完成签名并执行请求，并完成验签
+		CloseableHttpResponse response = wxPayClient.execute(httpPost);
+		try {
+			//解析响应结果
+			String bodyAsString = EntityUtils.toString(response.getEntity());
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				log.info("成功, 退款返回结果 = " + bodyAsString);
+			} else if (statusCode == 204) {
+				log.info("成功");
+			} else {
+				throw new RuntimeException("退款异常, 响应码 = " + statusCode+ ", 退款返回结果 = " + bodyAsString);
+			}
+			//更新订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_PROCESSING);
+			//更新退款单
+			refundsInfoService.updateRefund(bodyAsString);
+		} finally {
+			response.close();
 		}
 	}
 	

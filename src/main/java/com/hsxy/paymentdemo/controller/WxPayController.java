@@ -171,4 +171,18 @@ public class WxPayController {
 		String bodyAsString = wxPayService.queryOrder(orderNo);
 		return AjaxResult.ok().setMessage("查询成功").data("bodyAsString", bodyAsString);
 	}
+	
+	/**
+	 * @Description 申请退款
+	 * @Param [orderNo, reason] 订单号,原因
+	 * @return com.hsxy.paymentdemo.vo.AjaxResult
+	 */
+	@ApiOperation("申请退款")
+	@PostMapping("/refunds/{orderNo}/{reason}")
+	public AjaxResult refunds(@PathVariable String orderNo, @PathVariable String reason)
+			throws Exception {
+		log.info("申请退款");
+		wxPayService.refund(orderNo, reason);
+		return AjaxResult.ok();
+	}
 }
