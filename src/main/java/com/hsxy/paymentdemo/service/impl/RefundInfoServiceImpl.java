@@ -1,5 +1,8 @@
 package com.hsxy.paymentdemo.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.gson.Gson;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.hsxy.paymentdemo.mapper.RefundInfoMapper;
@@ -10,6 +13,8 @@ import com.hsxy.paymentdemo.util.OrderNoUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class RefundInfoServiceImpl extends ServiceImpl<RefundInfoMapper, RefundInfo> implements RefundInfoService {
@@ -31,5 +36,31 @@ public class RefundInfoServiceImpl extends ServiceImpl<RefundInfoMapper, RefundI
 		//保存退款订单
 		baseMapper.insert(refundInfo);
 		return refundInfo;
+	}
+	
+	@Override
+	public void updateRefund(String content) {
+		//将json字符串转换成Map
+		Gson gson = new Gson();
+		Map<String, String> resultMap = gson.fromJson(content, HashMap.class);
+		//根据退款单编号修改退款单
+		LambdaQueryWrapper<RefundInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(RefundInfo::getRefundNo, resultMap.get("out_refund_no"));
+		//设置要修改的字段
+		RefundInfo refundInfo = new RefundInfo();
+		refundInfo.setRefundId(resultMap.get("refund_id"));//微信支付退款单号
+		//查询退款和申请退款中的返回参数
+		if(resultMap.get("status") != null){
+			refundInfo.setRefundStatus(resultMap.get("status"));//退款状态
+			refundInfo.setContentReturn(content);//将全部响应结果存入数据库的content字段
+		}
+		//退款回调中的回调参数
+		if(resultMap.get("refund_status") != null){
+			refundInfo.setRefundStatus(resultMap.get("refund_status"));//退款状态
+			refundInfo.setContentNotify(content);//将全部响应结果存入数据库的content字段
+		}
+		//更新退款单
+		baseMapper.update(refundInfo, queryWrapper);
 	}
 }

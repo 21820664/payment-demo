@@ -14,4 +14,11 @@ public interface RefundInfoService extends IService<RefundInfo> {
 	 * @return com.hsxy.paymentdemo.entity.RefundInfo
 	 */
 	RefundInfo createRefundByOrderNo(String orderNo, String reason);
+	
+	/**
+	 * @Description 更新退款单
+	 * @Param [bodyAsString] 微信支付返回通知请求体
+	 * @return void
+	 */
+	void updateRefund(String bodyAsString);
 }
