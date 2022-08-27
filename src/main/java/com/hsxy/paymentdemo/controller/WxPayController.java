@@ -157,4 +157,18 @@ public class WxPayController {
 		wxPayService.cancelOrder(orderNo);
 		return AjaxResult.ok().setMessage("订单已取消");
 	}
+	
+	/**
+	 * @Description 查询订单
+	 * @Param [orderNo]
+	 * @return com.hsxy.paymentdemo.vo.AjaxResult
+	 */
+	@ApiOperation("查询订单(测试订单状态用)")
+	@GetMapping("/query/{orderNo}")
+	public AjaxResult queryOrder(@PathVariable String orderNo) throws Exception {
+		log.info("查询订单");
+		//将订单信息保存为字符串
+		String bodyAsString = wxPayService.queryOrder(orderNo);
+		return AjaxResult.ok().setMessage("查询成功").data("bodyAsString", bodyAsString);
+	}
 }
