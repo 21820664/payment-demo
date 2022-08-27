@@ -42,4 +42,11 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	 * @return java.lang.String
 	 */
 	String getOrderStatus(String orderNo);
+	
+	/**
+	 * @Description 查询创建超过5分钟，并且未支付的订单
+	 * @Param [minutes] 时间(分钟)
+	 * @return java.util.List<com.hsxy.paymentdemo.entity.OrderInfo>
+	 */
+	List<OrderInfo> getNoPayOrderByDuration(int minutes);
 }

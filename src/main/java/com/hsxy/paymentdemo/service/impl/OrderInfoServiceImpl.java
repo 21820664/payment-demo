@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.apache.commons.lang3.time.DateFormatUtils;
 
 import javax.annotation.Resource;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -112,6 +114,21 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 			return null;
 		}
 		return orderInfo.getOrderStatus();
+	}
+	
+	@Override
+	public List<OrderInfo> getNoPayOrderByDuration(int minutes) {
+		/*//minutes分钟之前的时间(另解)
+		Instant instant = Instant.now().minus(Duration.ofMinutes(minutes));
+		QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
+		queryWrapper.le("create_time", instant);*/
+		
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(OrderInfo::getOrderStatus,OrderStatus.NOTPAY.getType())
+					//判断订单创建时间是否大于n分钟(定时调用查询订单API)<查找n分钟外未支付的订单>
+					.apply("TIMESTAMPDIFF(MINUTE, create_time , now()) > " + minutes);
+		return baseMapper.selectList(queryWrapper);
 	}
 	
 }
