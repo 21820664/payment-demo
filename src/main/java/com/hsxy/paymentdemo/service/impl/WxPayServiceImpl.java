@@ -6,6 +6,7 @@ import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
+import com.hsxy.paymentdemo.enums.wxpay.WxTradeState;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
@@ -187,7 +188,7 @@ public class WxPayServiceImpl implements WxPayService {
 	}
 	
 	/**
-	 * @Description 关单接口的调用
+	 * @Description 微信支付端关单接口的调用
 	 * @Param [orderNo]
 	 * @return void
 	 */
@@ -258,6 +259,32 @@ public class WxPayServiceImpl implements WxPayService {
 			return bodyAsString;
 		} finally {
 			response.close();
+		}
+	}
+	
+	@Override
+	public void checkOrderStatus(String orderNo) throws Exception {
+		log.warn("根据订单号核实订单状态 ===> {}", orderNo);
+		//调用微信支付查单接口
+		String result = this.queryOrder(orderNo);
+		Gson gson = new Gson();
+		Map resultMap = gson.fromJson(result, HashMap.class);
+		//获取微信支付端的订单状态
+		Object tradeState = resultMap.get("trade_state");
+		//判断订单状态
+		if(WxTradeState.SUCCESS.getType().equals(tradeState)){
+			log.warn("核实订单已支付 ===> {}", orderNo);
+			//如果确认订单已支付则更新本地订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
+			//记录支付日志
+			paymentInfoService.createPaymentInfo(result);
+		}
+		if(WxTradeState.NOTPAY.getType().equals(tradeState)){
+			log.warn("核实订单未支付 ===> {}", orderNo);
+			//如果订单未支付，则调用关单接口
+			this.closeOrder(orderNo);
+			//更新本地订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
 		}
 	}
 	

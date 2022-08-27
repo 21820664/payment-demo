@@ -44,13 +44,14 @@ public class WxPayTask {
 	 * @return void
 	 */
 	@Scheduled(cron = "0/30 * * * * ?")
-	public void orderConfirm() {
+	public void orderConfirm() throws Exception {
 		log.info("orderConfirm 被执行......");
 		List<OrderInfo> orderInfoList = orderInfoService.getNoPayOrderByDuration(5);
 		for (OrderInfo orderInfo : orderInfoList) {
 			String orderNo = orderInfo.getOrderNo();
 			log.warn("超时订单 ===> {}", orderNo);
-
+			//核实订单状态：调用微信支付查单接口
+			wxPayService.checkOrderStatus(orderNo);
 		}
 	}
 }

@@ -38,7 +38,7 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	
 	/**
 	 * @Description 获取订单状态
-	 * @Param [orderNo]
+	 * @Param [orderNo] 订单号
 	 * @return java.lang.String
 	 */
 	String getOrderStatus(String orderNo);
