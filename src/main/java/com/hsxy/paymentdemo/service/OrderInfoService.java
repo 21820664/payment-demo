@@ -49,4 +49,11 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	 * @return java.util.List<com.hsxy.paymentdemo.entity.OrderInfo>
 	 */
 	List<OrderInfo> getNoPayOrderByDuration(int minutes);
+	
+	/**
+	 * @Description 根据订单号获取订单
+	 * @Param [orderNo] 订单号
+	 * @return com.hsxy.paymentdemo.entity.OrderInfo
+	 */
+	OrderInfo getOrderByOrderNo(String orderNo);
 }

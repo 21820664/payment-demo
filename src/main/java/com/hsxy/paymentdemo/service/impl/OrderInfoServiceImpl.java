@@ -131,4 +131,13 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		return baseMapper.selectList(queryWrapper);
 	}
 	
+	@Override
+	public OrderInfo getOrderByOrderNo(String orderNo) {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(OrderInfo::getOrderNo, orderNo)
+					.last(" limit 1");
+		return baseMapper.selectOne(queryWrapper);
+	}
+	
 }
