@@ -24,4 +24,11 @@ public interface WxPayService {
 	 * @return void
 	 */
 	void processOrder(String plainText);
+	
+	/**
+	 * @Description 用户取消订单
+	 * @Param [orderNo]
+	 * @return void
+	 */
+	void cancelOrder(String orderNo) throws Exception;
 }

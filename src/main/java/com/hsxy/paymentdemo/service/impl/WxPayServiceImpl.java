@@ -74,7 +74,7 @@ public class WxPayServiceImpl implements WxPayService {
 		paramsMap.put("mchid", wxPayConfig.getMchId());
 		paramsMap.put("description", orderInfo.getTitle());
 		paramsMap.put("out_trade_no", orderInfo.getOrderNo());
-		paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.NATIVE_NOTIFY.getType()));// TODO WU: 避免输入一大串:https://7d92-115-171-63-135.ngrok.io/api/wx-pay/native/notify
+		paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.NATIVE_NOTIFY.getType()));// DO WU: 避免输入一大串:https://7d92-115-171-63-135.ngrok.io/api/wx-pay/native/notify
 		//嵌套类型,再创建一个HashMap
 		//Map amountMap = new HashMap();
 		HashMap<String, Object> amountMap = new HashMap<>();
@@ -82,7 +82,7 @@ public class WxPayServiceImpl implements WxPayService {
 		amountMap.put("currency", "CNY");
 		//嵌套类型,返回到paramsMap
 		paramsMap.put("amount", amountMap);
-		
+	//-| 开关单此处代码一致
 		//将参数转换成json字符串
 		String jsonParams = gson.toJson(paramsMap);
 		log.info("请求参数：" + jsonParams);
@@ -95,7 +95,7 @@ public class WxPayServiceImpl implements WxPayService {
 
 		//完成签名并执行请求
 		CloseableHttpResponse response = wxPayClient.execute(httpPost);
-		
+	//-|
 		try {
 			//响应体
 			String bodyAsString = EntityUtils.toString(response.getEntity());
@@ -175,6 +175,60 @@ public class WxPayServiceImpl implements WxPayService {
 			}
 		}
 		
+	}
+	
+	@Override
+	public void cancelOrder(String orderNo) throws Exception {
+		//调用微信支付的关单接口
+		this.closeOrder(orderNo);
+		//更新商户端的订单状态
+		orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CANCEL);
+	}
+	
+	/**
+	 * @Description 关单接口的调用
+	 * @Param [orderNo]
+	 * @return void
+	 */
+	private void closeOrder(String orderNo) throws Exception {
+		log.info("关单接口的调用，订单号 ===> {}", orderNo);
+		//创建远程请求对象
+		//String.format()双参数,第二个参数可替换第一个参数中的占位符
+		String url = String.format(WxApiType.CLOSE_ORDER_BY_NO.getType(), orderNo);
+		url = wxPayConfig.getDomain().concat(url);
+		HttpPost httpPost = new HttpPost(url);
+		
+		Gson gson = new Gson();
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put("mchid", wxPayConfig.getMchId());
+	//-| 开关单此处代码一致
+		//将参数转换成json字符串
+		//组装json请求体
+		String jsonParams = gson.toJson(paramsMap);
+		log.info("请求参数 ===> {}", jsonParams);
+		
+		//设置请求头格式(JSON)
+		StringEntity entity = new StringEntity(jsonParams,"utf-8");
+		entity.setContentType("application/json");
+		httpPost.setEntity(entity);
+		httpPost.setHeader("Accept", "application/json");
+		
+		//完成签名并执行请求
+		CloseableHttpResponse response = wxPayClient.execute(httpPost);
+	//-|
+		try {
+			int statusCode = response.getStatusLine().getStatusCode();//响应状态码
+			if (statusCode == 200) { //处理成功
+				log.info("成功200");
+			} else if (statusCode == 204) { //处理成功，无返回Body
+				log.info("成功204");
+			} else {
+				log.info("Native下单失败,响应码 = " + statusCode);
+				throw new IOException("request failed");
+			}
+		} finally {
+			response.close();
+		}
 	}
 	
 }
