@@ -68,10 +68,10 @@ public class WxPayController {
 	 * @Param [request, response]
 	 * @return java.lang.String
 	 */
-	@ApiOperation("支付通知")
-	@PostMapping("/native/notify")
-	public String nativeNotify(HttpServletRequest request, HttpServletResponse
-			response){
+	@ApiOperation("支付结果通知")
+	@PostMapping("/native/notify")//Postman单发无用
+	public String nativeNotify(HttpServletRequest request, HttpServletResponse response){
+		log.info("支付通知执行");
 		Gson gson = new Gson();
 		Map<String, String> map = new HashMap<>();//应答对象
 		try {
@@ -197,5 +197,78 @@ public class WxPayController {
 		log.info("查询退款");
 		String result = wxPayService.queryRefund(refundNo);
 		return AjaxResult.ok().setMessage("查询成功").data("result", result);
+	}
+	
+	@ApiOperation("退款结果通知")
+	@PostMapping("/refunds/notify")//Postman单发无用
+	public String refundsNotify(HttpServletRequest request, HttpServletResponse
+			response){
+		log.info("退款通知执行");
+		Gson gson = new Gson();
+		Map<String, String> map = new HashMap<>();//应答对象
+		try {
+			
+			String apiV3Key = wxPayConfig.getApiV3Key();
+			//从微信支付回调请求头获取必要信息
+			String wechatPaySerial = request.getHeader("Wechatpay-Serial");//应答平台证书序列号
+			String nonce = request.getHeader("Wechatpay-Nonce");//应答随机串
+			String timestamp = request.getHeader("Wechatpay-Timestamp");//时间戳
+			String signature = request.getHeader("Wechatpay-Signature");//签名
+			
+			//处理通知参数
+			String body = HttpUtils.readData(request);//应答主体 [readData(request)同一request只能使用一次 ∵ br.close()]
+			Map<String, Object> bodyMap = gson.fromJson(body, HashMap.class);
+			String notifyId = (String) bodyMap.get("id");//退款通知的id
+			
+			log.info("退款通知的id ===> {}", notifyId);
+			log.info("退款通知的完整数据 ===> {}", body);
+			log.info("_________________________");
+			log.info("平台证书序列号 ===> {}", wechatPaySerial);
+			log.info("nonce ===> {}", nonce);
+			log.info("timestamp ===> {}", timestamp);
+			log.info("signature ===> {}", signature);
+			//DO : 签名的验证
+			// 构建request，传入必要参数
+			NotificationRequest notificationRequest = new NotificationRequest.Builder()
+					.withSerialNumber(wechatPaySerial)
+					.withNonce(nonce)
+					.withTimestamp(timestamp)
+					.withSignature(signature)
+					.withBody(body)
+					.build();
+			NotificationHandler handler = new NotificationHandler(verifier, apiV3Key.getBytes(StandardCharsets.UTF_8));
+
+			// 验签和解析请求体
+			Notification notification = handler.parse(notificationRequest);
+			
+			// 从notification中获取解密报文。
+			String plainText = notification.getDecryptData();
+			log.info("解密报文---> {}" , plainText);
+			
+			String eventType = notification.getEventType();
+			if(eventType.length() == 0){
+				log.error("支付回调通知验签失败");
+				response.setStatus(500);
+				map.put("code","ERROR");
+				map.put("message","失败");
+				return gson.toJson(map);
+			}
+			log.info("支付回调通知验签成功");
+			
+			//DO : 处理退款单:通过解密报文<**和支付结果通知的唯一区别**>
+			wxPayService.processRefund(plainText);
+			
+			//成功应答：成功应答必须为200或204，否则就是失败应答(微信写死)
+			//(新版)接收成功：HTTP应答状态码需返回200或204，无需返回应答报文。
+			response.setStatus(200);
+			map.put("code", "SUCCESS");
+			map.put("message", "成功(可以不用返回)");
+			return gson.toJson(map);
+		} catch (Exception e) {
+			response.setStatus(500);
+			map.put("code", "ERROR");
+			map.put("message", "失败(异常)");
+			return gson.toJson(map);
+		}
 	}
 }

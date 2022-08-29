@@ -165,11 +165,11 @@ public class WxPayServiceImpl implements WxPayService {
 				}
 				
 				//模拟通知并发
-				try {
+				/*try {
 					TimeUnit.SECONDS.sleep(5);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}
+				}*/
 				
 				//更新订单状态
 				orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
@@ -405,6 +405,46 @@ public class WxPayServiceImpl implements WxPayService {
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_ABNORMAL);
 			//更新退款单
 			refundsInfoService.updateRefund(result);
+		}
+		
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public void processRefund(String plainText) {
+		log.info("退款单");
+		
+		Gson gson = new Gson();
+		//转换明文:将明文转换为Map
+		Map<String, Object> plainTextMap = gson.fromJson(plainText, HashMap.class);
+		//商户订单号
+		String orderNo = (String) plainTextMap.get("out_trade_no");
+		
+		/*在对业务数据进行状态检查和处理之前，
+		要采用数据锁进行并发控制，
+		以避免函数重入造成的数据混乱*/
+		//尝试获取锁：
+		// 成功获取则立即返回true，获取失败则立即返回false。不必一直等待锁的释放
+		if(lock.tryLock()){
+			try {
+				//处理重复通知
+				//保证接口调用的幂等性：无论接口被调用多少次，产生的结果是一致的
+				String orderStatus = orderInfoService.getOrderStatus(orderNo);
+				//<**与处理订单的区别**>
+				if (!OrderStatus.REFUND_PROCESSING.getType().equals(orderStatus)) {
+					return;
+				}
+				
+				//更新订单状态
+				orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
+				/*//记录支付日志
+				paymentInfoService.createPaymentInfo(plainText);*/
+				//更新退款单<**与处理订单的区别**>
+				refundsInfoService.updateRefund(plainText);
+			} finally {
+				//要主动释放锁
+				lock.unlock();
+			}
 		}
 		
 	}

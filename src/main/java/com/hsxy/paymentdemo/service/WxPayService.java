@@ -68,4 +68,11 @@ public interface WxPayService {
 	 * @return void
 	 */
 	void checkRefundStatus(String refundNo) throws IOException;
+	
+	/**
+	 * @Description 处理退款单
+	 * @Param [plainText] 解密后明文
+	 * @return void
+	 */
+	void processRefund(String plainText);
 }
