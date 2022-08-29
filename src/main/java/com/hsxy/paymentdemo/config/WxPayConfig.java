@@ -61,6 +61,9 @@ public class WxPayConfig {
 	// 接收结果通知地址
 	private String notifyDomain;
 	
+	//APIv2密钥
+	private String partnerKey;
+	
 	/**
 	 * @Description 获取商户的私钥文件
 	 * 先改成public方便进行测试

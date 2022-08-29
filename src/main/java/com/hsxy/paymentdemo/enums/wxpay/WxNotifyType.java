@@ -19,7 +19,12 @@ public enum WxNotifyType {
 	/**
 	 * 退款结果通知
 	 */
-	REFUND_NOTIFY("/api/wx-pay/refunds/notify");
+	REFUND_NOTIFY("/api/wx-pay/refunds/notify"),
+	
+	/**
+	 * 支付通知V2
+	 */
+	NATIVE_NOTIFY_V2("/api/wx-pay-v2/native/notify");
 
 	/**
 	 * 类型

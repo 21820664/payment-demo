@@ -44,9 +44,14 @@ public enum WxApiType {
 	/**
 	 * 申请资金账单
 	 */
-	FUND_FLOW_BILLS("/v3/bill/fundflowbill");
-
-
+	FUND_FLOW_BILLS("/v3/bill/fundflowbill"),
+	
+	/**
+	 * Native下单V2
+	 */
+	NATIVE_PAY_V2("/pay/unifiedorder");
+	
+	
 	/**
 	 * 类型
 	 */

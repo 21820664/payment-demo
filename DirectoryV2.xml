@@ -8,4 +8,6 @@
            extension="java"/>
      <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxRefundStatus.java" title="微信退款状态(此状态与微信返回状态一致,勿更改)"
            extension="java"/>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/util/HttpClientUtils.java" title="http请求客户端(微信支付V2使用)"
+           extension="java"/>
  </trees>

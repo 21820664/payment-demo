@@ -68,7 +68,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!--wechatpay SDK(注意与3.x版本代码有异动)-->
+        <!--wechatpay_V3 SDK(注意与3.x版本代码有异动)-->
         <dependency>
             <groupId>com.github.wechatpay-apiv3</groupId>
             <artifactId>wechatpay-apache-httpclient</artifactId>
@@ -95,6 +95,13 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <!--微信支付V2-->
+        <dependency>
+            <groupId>com.github.wxpay</groupId>
+            <artifactId>wxpay-sdk</artifactId>
+            <version>0.0.3</version>
         </dependency>
 
     </dependencies>
