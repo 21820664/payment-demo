@@ -481,9 +481,12 @@ public class WxPayServiceImpl implements WxPayService {
 			}
 			
 			//获取账单下载地址
-			Gson gson = new Gson();
+			/*Gson gson = new Gson();
 			Map<String, String> resultMap = gson.fromJson(bodyAsString, HashMap.class);
-			return resultMap.get("download_url");
+			return resultMap.get("download_url");*/
+			
+			return (String)new Gson().fromJson(bodyAsString,HashMap.class).get("download_url");
+			
 		} finally {
 			response.close();
 		}

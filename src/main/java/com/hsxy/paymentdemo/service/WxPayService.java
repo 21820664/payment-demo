@@ -78,7 +78,7 @@ public interface WxPayService {
 	
 	/**
 	 * @Description 查询账单
-	 * @Param [billDate] 订单日期(无法查询当日账单) 格式:2022-08-29
+	 * @Param [billDate] 订单日期(无法查询当日账单) 格式:yyyy-MM-dd 5.6日的账单记录的时间为05-06 9:00到05-07 9:00,并且在05-07 9:00后才能查到.
 	 * @Param [type] 查询账单类型 选择:{交易账单 tradebill,资金账单 fundflowbill}
 	 * @return java.lang.String
 	 */
