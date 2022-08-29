@@ -449,4 +449,44 @@ public class WxPayServiceImpl implements WxPayService {
 		
 	}
 	
+	@Override
+	public String queryBill(String billDate, String type) throws IOException {
+		log.warn("申请账单接口调用,日期: {}", billDate);
+		String url;//不用初始化
+		//微信支付提供,写死了
+		if("tradebill".equals(type)){
+			url = WxApiType.TRADE_BILLS.getType();
+		}else if("fundflowbill".equals(type)){
+			url = WxApiType.FUND_FLOW_BILLS.getType();
+		}else{
+			throw new RuntimeException("不支持的账单类型");
+		}
+		
+		url = wxPayConfig.getDomain().concat(url).concat("?bill_date=").concat(billDate);
+		//创建远程Get 请求对象
+		HttpGet httpGet = new HttpGet(url);
+		httpGet.addHeader("Accept", "application/json");
+		
+		//使用wxPayClient发送请求得到响应
+		CloseableHttpResponse response = wxPayClient.execute(httpGet);
+		try {
+			String bodyAsString = EntityUtils.toString(response.getEntity());
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				log.info("成功, 申请账单返回结果 = " + bodyAsString);
+			} else if (statusCode == 204) {
+				log.info("成功");
+			} else {
+				throw new RuntimeException("申请账单异常, 响应码 = " + statusCode+ ",申请账单返回结果 = " + bodyAsString);
+			}
+			
+			//获取账单下载地址
+			Gson gson = new Gson();
+			Map<String, String> resultMap = gson.fromJson(bodyAsString, HashMap.class);
+			return resultMap.get("download_url");
+		} finally {
+			response.close();
+		}
+	}
+	
 }

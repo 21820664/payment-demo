@@ -271,4 +271,12 @@ public class WxPayController {
 			return gson.toJson(map);
 		}
 	}
+	
+	@ApiOperation("获取账单url：测试用")
+	@GetMapping("/querybill/{billDate}/{type}")
+	public AjaxResult queryTradeBill(@PathVariable String billDate, @PathVariable String type) throws Exception {
+		log.info("获取账单url");
+		String downloadUrl = wxPayService.queryBill(billDate, type);
+		return AjaxResult.ok().setMessage("获取账单url成功").data("downloadUrl", downloadUrl);
+	}
 }
