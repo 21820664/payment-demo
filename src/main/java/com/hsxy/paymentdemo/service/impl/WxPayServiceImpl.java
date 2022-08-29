@@ -7,6 +7,7 @@ import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
+import com.hsxy.paymentdemo.enums.wxpay.WxRefundStatus;
 import com.hsxy.paymentdemo.enums.wxpay.WxTradeState;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
@@ -375,6 +376,37 @@ public class WxPayServiceImpl implements WxPayService {
 		} finally {
 			response.close();
 		}
+	}
+	
+	@Override
+	public void checkRefundStatus(String refundNo) throws IOException {
+		log.warn("根据退款单号核实退款单状态 ===> {}", refundNo);
+		//调用查询退款单接口
+		String result = this.queryRefund(refundNo);
+		//组装json请求体字符串
+		Gson gson = new Gson();
+		Map<String,String> resultMap = gson.fromJson(result, HashMap.class);
+		//获取微信支付端退款状态
+		//Object tradeState = resultMap.get("trade_state");
+		String status = resultMap.get("status");//退款状态
+		String orderNo = resultMap.get("out_trade_no");//订单号
+		
+		//判断退款单状态
+		if(WxRefundStatus.SUCCESS.getType().equals(status)){
+			log.warn("核实订单已退款成功 ===> {}", refundNo);
+			//如果确认退款成功，则更新**订单状态**
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
+			//更新退款单
+			refundsInfoService.updateRefund(result);
+		}
+		if(WxRefundStatus.ABNORMAL.getType().equals(status)){
+			log.warn("核实订单退款异常 ===> {}", refundNo);
+			//如果确认退款异常，则更新**订单状态**
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_ABNORMAL);
+			//更新退款单
+			refundsInfoService.updateRefund(result);
+		}
+		
 	}
 	
 }

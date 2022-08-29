@@ -3,6 +3,8 @@ package com.hsxy.paymentdemo.service;
 import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * @Description 退款订单
  */
@@ -21,4 +23,11 @@ public interface RefundInfoService extends IService<RefundInfo> {
 	 * @return void
 	 */
 	void updateRefund(String bodyAsString);
+	
+	/**
+	 * @Description 查询创建退款超过5分钟，并且未成功的退款单
+	 * @Param [minute] 时间(分)
+	 * @return java.util.List<com.hsxy.paymentdemo.entity.RefundInfo>
+	 */
+	List<RefundInfo> getNoRefundOrderByDuration(int minutes);
 }

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 微信退款状态
+ * 微信退款状态(此状态与微信返回状态一致,勿更改)
  */
 @AllArgsConstructor
 @Getter

@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.gson.Gson;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.entity.RefundInfo;
+import com.hsxy.paymentdemo.enums.OrderStatus;
+import com.hsxy.paymentdemo.enums.wxpay.WxRefundStatus;
 import com.hsxy.paymentdemo.mapper.RefundInfoMapper;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.RefundInfoService;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -62,5 +65,15 @@ public class RefundInfoServiceImpl extends ServiceImpl<RefundInfoMapper, RefundI
 		}
 		//更新退款单
 		baseMapper.update(refundInfo, queryWrapper);
+	}
+	
+	@Override
+	public List<RefundInfo> getNoRefundOrderByDuration(int minutes) {
+		LambdaQueryWrapper<RefundInfo> queryWrapper = new LambdaQueryWrapper<>();
+		
+		queryWrapper.eq(RefundInfo::getRefundStatus, WxRefundStatus.PROCESSING.getType())
+					//判断退款单创建时间是否大于n分钟(定时调用查询订单API)<查找n分钟外未支付的订单>
+					.apply("TIMESTAMPDIFF(MINUTE, create_time , now()) > " + minutes);
+		return baseMapper.selectList(queryWrapper);
 	}
 }

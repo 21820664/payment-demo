@@ -9,9 +9,9 @@ public class RefundInfo extends BaseEntity{
 
     private String orderNo;//商品订单编号
 
-    private String refundNo;//退款单编号
+    private String refundNo;//退款单编号(自建)
 
-    private String refundId;//支付系统退款单号
+    private String refundId;//支付系统退款单号(平台)
 
     private Integer totalFee;//原订单金额(分)
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+ <trees>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/task/WxPayTask.java" title="微信定时任务" extension="java"/>
+     <tree path="/apiclient_key.pem" title="商户私钥" extension="pem"/>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/OrderStatus.java" title="订单状态:发生在商户和用户之间" extension="java"/>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/PayType.java" title="支付类型:后期可开发更多类型" extension="java"/>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxTradeState.java" title="微信订单状态:发生在商户和微信平台"
+           extension="java"/>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxRefundStatus.java" title="微信退款状态(此状态与微信返回状态一致,勿更改)"
+           extension="java"/>
+ </trees>
