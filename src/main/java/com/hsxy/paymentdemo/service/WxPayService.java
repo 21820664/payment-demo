@@ -91,4 +91,11 @@ public interface WxPayService {
 	 * @return java.lang.String
 	 */
 	String downloadBill(String billDate, String type) throws IOException;
+	
+	/**
+	 * @Description 创建订单，调用Native支付接口V2
+	 * @Param [productId, remoteAddr] 商品ID, 远程客户端主机主机地址
+	 * @return java.util.Map<java.lang.String, java.lang.Object>
+	 */
+	Map<String, Object> nativePayV2(Long productId, String remoteAddr) throws Exception;
 }
