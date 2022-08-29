@@ -7,8 +7,8 @@ import java.util.Random;
 /**
  * 订单号工具类
  *
- * @author qy
- * @since 1.0
+ * @author qy/HSXY
+ * @since 1.1
  */
 public class OrderNoUtils {
 
@@ -17,7 +17,7 @@ public class OrderNoUtils {
      * @return
      */
     public static String getOrderNo() {
-        return "ORDER_" + getNo();
+        return "HSXY_ORDER_" + getNo();
     }
 
     /**
@@ -25,7 +25,7 @@ public class OrderNoUtils {
      * @return
      */
     public static String getRefundNo() {
-        return "REFUND_" + getNo();
+        return "HSXY_REFUND_" + getNo();
     }
 
     /**

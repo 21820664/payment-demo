@@ -83,4 +83,12 @@ public interface WxPayService {
 	 * @return java.lang.String
 	 */
 	String queryBill(String billDate, String type) throws IOException;
+	
+	/**
+	 * @Description 下载账单
+	 * @Param [billDate] 订单日期(无法查询当日账单) 格式:2022-08-29
+	 * @Param [type] 查询账单类型 选择:{交易账单 tradebill,资金账单 fundflowbill}
+	 * @return java.lang.String
+	 */
+	String downloadBill(String billDate, String type) throws IOException;
 }

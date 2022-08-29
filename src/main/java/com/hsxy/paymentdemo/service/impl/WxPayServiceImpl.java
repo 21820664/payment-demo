@@ -489,4 +489,33 @@ public class WxPayServiceImpl implements WxPayService {
 		}
 	}
 	
+	@Resource
+	private CloseableHttpClient wxPayNoSignClient; //无需应答签名
+	
+	@Override
+	public String downloadBill(String billDate, String type) throws IOException {
+		log.warn("下载账单接口调用,日期: {},账单类型: {}", billDate, type);
+		//获取账单url地址
+		String downloadUrl = this.queryBill(billDate, type);
+		
+		//创建远程Get 请求对象
+		HttpGet httpGet = new HttpGet(downloadUrl);
+		httpGet.addHeader("Accept", "application/json");
+		//使用wxPayClient发送请求得到响应
+		CloseableHttpResponse response = wxPayNoSignClient.execute(httpGet);
+		try {
+			String bodyAsString = EntityUtils.toString(response.getEntity());
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				log.info("成功, 下载账单返回结果 = " + bodyAsString);
+			} else if (statusCode == 204) {
+				log.info("成功");
+			} else {
+				throw new RuntimeException("下载账单异常, 响应码 = " + statusCode+ ",下载账单返回结果 = " + bodyAsString);
+			}
+			return bodyAsString;
+		} finally {
+			response.close();
+		}
+	}
 }

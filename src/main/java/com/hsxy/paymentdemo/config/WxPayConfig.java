@@ -40,6 +40,7 @@ import java.security.PrivateKey;
 public class WxPayConfig {
 	
 	// 商户号( Java文件与配置文件 的对应关系(小驼峰与中划线)自动映射,因此不用加注解映射)
+	//@Value("${wxpay.mch-id}")
 	private String mchId;
 	
 	// 商户API证书序列号
@@ -122,7 +123,7 @@ public class WxPayConfig {
 	 * @Param [verifier]
 	 * @return org.apache.http.impl.client.CloseableHttpClient
 	 */
-	@Bean
+	@Bean(name = "wxPayClient")
 	public CloseableHttpClient getWxPayClient(Verifier verifier){
 		
 		log.info("获取HttpClient对象");
@@ -142,4 +143,19 @@ public class WxPayConfig {
 		//CloseableHttpResponse response = httpClient.execute(...);
 	}
 	
+	@Bean(name = "wxPayNoSignClient")
+	public CloseableHttpClient getWxPayNoSignClient(){
+		log.info("初始化wxPayNoSignClient");
+		//获取商户私钥
+		PrivateKey privateKey = getPrivateKey(privateKeyPath);
+		WechatPayHttpClientBuilder builder = WechatPayHttpClientBuilder.create()
+				.withMerchant(mchId, mchSerialNo, privateKey)
+				//设置响应对象无需签名<与上方区别>
+				//直接用lamdba的方式定义了接口的实现，return了方法的返回值为 ture，大致意思就是所有的响应验签结果都是true
+				//具体原因就是 下载账单请求的响应里，在head中 没有 `WECHAT_PAY_SERIAL` ，所以使用原来的验签器时在方法里 get不到值报的错，导致验签不通过
+				.withValidator(response -> true);
+		CloseableHttpClient wxPayNoSignClient = builder.build();
+		log.info("wxPayNoSignClient初始化完成");
+		return wxPayNoSignClient;
+	}
 }
