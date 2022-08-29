@@ -15,6 +15,7 @@ import com.hsxy.paymentdemo.service.PaymentInfoService;
 import com.hsxy.paymentdemo.service.RefundInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.HttpClientUtils;
+import com.hsxy.paymentdemo.util.HttpUtils;
 import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -27,8 +28,10 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
@@ -582,5 +585,80 @@ public class WxPayServiceImpl implements WxPayService {
 		map.put("codeUrl", codeUrl);
 		map.put("orderNo", orderInfo.getOrderNo());
 		return map;
+	}
+	
+	@Resource
+	private WxPayService wxPayService;
+	/*@Resource
+	private WxPayConfig wxPayConfig;
+	@Resource
+	private OrderInfoService orderInfoService;
+	@Resource
+	private PaymentInfoService paymentInfoService;
+	private final ReentrantLock lock = new ReentrantLock();*/
+	
+	/**
+	 * @Description 支付通知:微信支付通过支付通知接口将用户支付成功消息通知给商户
+	 * @Param [request]
+	 * @return java.lang.String
+	 */
+	@PostMapping("/native/notify")
+	public String wxNotify(HttpServletRequest request) throws Exception {
+		log.info("微信发送的回调");
+		Map<String, String> returnMap = new HashMap<>();//应答对象
+		//处理通知参数
+		String body = HttpUtils.readData(request);
+		//验签<V2依赖>
+		if(!WXPayUtil.isSignatureValid(body, wxPayConfig.getPartnerKey())) {
+			log.error("通知验签失败");
+			//失败应答
+			returnMap.put("return_code", "FAIL");
+			returnMap.put("return_msg", "验签失败");
+			//V2以XML方式传输
+			return WXPayUtil.mapToXml(returnMap);
+		}
+		//解析xml数据
+		Map<String, String> notifyMap = WXPayUtil.xmlToMap(body);
+		//判断通信和业务是否成功
+		if(!"SUCCESS".equals(notifyMap.get("return_code")) || !"SUCCESS".equals(notifyMap.get("result_code"))) {
+			log.error("失败");
+			//失败应答
+			returnMap.put("return_code", "FAIL");
+			returnMap.put("return_msg", "失败");
+			return WXPayUtil.mapToXml(returnMap);
+		}
+		//获取商户订单号
+		String orderNo = notifyMap.get("out_trade_no");
+		OrderInfo orderInfo = orderInfoService.getOrderByOrderNo(orderNo);
+		//并校验返回的订单金额是否与商户侧的订单金额一致
+		if (orderInfo != null && orderInfo.getTotalFee() != Long.parseLong(notifyMap.get("total_fee"))) {
+			log.error("金额校验失败");
+			//失败应答
+			returnMap.put("return_code", "FAIL");
+			returnMap.put("return_msg", "金额校验失败");
+			return WXPayUtil.mapToXml(returnMap);
+		}
+		//处理订单
+		if(lock.tryLock()){
+			try {
+				//处理重复的通知
+				//接口调用的幂等性：无论接口被调用多少次，产生的结果是一致的。
+				String orderStatus = orderInfoService.getOrderStatus(orderNo);
+				if(OrderStatus.NOTPAY.getType().equals(orderStatus)){
+					//更新订单状态
+					orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
+					//记录支付日志
+					paymentInfoService.createPaymentInfo(body);
+				}
+			} finally {
+				//要主动释放锁
+				lock.unlock();
+			}
+		}
+		returnMap.put("return_code", "SUCCESS");
+		returnMap.put("return_msg", "OK");
+		String returnXml = WXPayUtil.mapToXml(returnMap);
+		log.info("支付成功，已应答");
+		return returnXml;
 	}
 }

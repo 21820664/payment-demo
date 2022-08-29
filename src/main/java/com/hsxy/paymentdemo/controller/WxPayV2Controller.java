@@ -34,12 +34,10 @@ public class WxPayV2Controller {
 	 */
 	@ApiOperation("调用统一下单API，生成支付二维码")
 	@PostMapping("/native/{productId}")
-	public AjaxResult createNative(@PathVariable Long productId, HttpServletRequest
-			request) throws Exception {
+	public AjaxResult createNative(@PathVariable Long productId, HttpServletRequest request) throws Exception {
 		log.info("发起支付请求 v2");
 		String remoteAddr = request.getRemoteAddr();
-		Map<String, Object> map = wxPayService.nativePayV2(productId,
-				remoteAddr);
+		Map<String, Object> map = wxPayService.nativePayV2(productId, remoteAddr);
 		return AjaxResult.ok().setData(map);
 	}
 }
