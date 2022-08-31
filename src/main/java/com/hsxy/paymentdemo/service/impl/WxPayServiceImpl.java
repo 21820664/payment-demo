@@ -598,7 +598,7 @@ public class WxPayServiceImpl implements WxPayService {
 	private final ReentrantLock lock = new ReentrantLock();*/
 	
 	/**
-	 * @Description 支付通知:微信支付通过支付通知接口将用户支付成功消息通知给商户
+	 * @Description V2支付通知:微信支付通过支付通知接口将用户支付成功消息通知给商户
 	 * @Param [request]
 	 * @return java.lang.String
 	 */
