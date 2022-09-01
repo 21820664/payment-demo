@@ -3,6 +3,7 @@ package com.hsxy.paymentdemo.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
+import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.hsxy.paymentdemo.entity.OrderInfo;
@@ -46,8 +47,11 @@ public class AliPayServiceImpl implements AliPayService {
 			//request.setNotifyUrl("");
 			//支付完成后，我们想让页面跳转回支付成功的页面，配置returnUrl
 			request.setReturnUrl(config.getProperty("alipay.return-url"));
+			//金额使用大浮点数<区别于微信,微信以分为单位,但支付宝以元为单位>
+			//先转成String再转成BigDecimal
+			BigDecimal total = new BigDecimal(orderInfo.getTotalFee().toString()).divide(new BigDecimal("100"));
 
-				//组装当前业务方法的请求参数
+				/*//组装当前业务方法的请求参数
 				JSONObject bizContent = new JSONObject();
 				bizContent.put("out_trade_no", orderInfo.getOrderNo());
 				//金额使用大浮点数<区别于微信,微信以分为单位,但支付宝以元为单位>
@@ -57,8 +61,17 @@ public class AliPayServiceImpl implements AliPayService {
 				bizContent.put("subject", orderInfo.getTitle());//订单标题
 				bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");//销售产品码
 			//将bizContent从JSONObject --> JSON(String)
-			request.setBizContent(bizContent.toString());
-
+			request.setBizContent(bizContent.toString())*/;
+			
+			//另解(支付宝封装,不易出错)
+			AlipayTradePagePayModel model = new AlipayTradePagePayModel();
+			model.setOutTradeNo(orderInfo.getOrderNo());
+			model.setTotalAmount(total.toString());//需用回String
+			model.setSubject(orderInfo.getTitle());
+			model.setProductCode("FAST_INSTANT_TRADE_PAY");//销售产品码(当前仅支持该常量:新快捷即时到账产品)
+			request.setBizModel(model);
+			
+			
 			//执行请求，调用支付宝接口
 			AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
 			if(response.isSuccess()){
