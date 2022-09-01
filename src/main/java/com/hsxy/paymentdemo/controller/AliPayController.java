@@ -127,4 +127,11 @@ public class AliPayController {
 		return result;
 	}
 	
+	@ApiOperation("用户取消订单")
+	@PostMapping("/trade/close/{orderNo}")
+	public AjaxResult cancel(@PathVariable String orderNo) throws Exception {
+		log.info("取消订单");
+		aliPayService.cancelOrder(orderNo);
+		return AjaxResult.ok().setMessage("订单已取消");
+	}
 }

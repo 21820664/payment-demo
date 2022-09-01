@@ -4,21 +4,28 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.google.gson.Gson;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.PayType;
+import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.service.AliPayService;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -142,6 +149,38 @@ public class AliPayServiceImpl implements AliPayService {
 				//要主动释放锁
 				lock.unlock();
 			}
+		}
+		
+	}
+	
+	@Override
+	public void cancelOrder(String orderNo) throws Exception {
+		//调用支付宝支付的关单接口
+		this.closeOrder(orderNo);
+		//更新商户端的订单状态
+		orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CANCEL);
+	}
+	
+	/**
+	 * @Description 支付宝支付端关单接口的调用
+	 * @Param [orderNo]
+	 * @return void
+	 */
+	private void closeOrder(String orderNo) throws Exception {
+		log.info("关单接口的调用，订单号 ===> {}", orderNo);
+		//复制请求示例:https://opendocs.alipay.com/open/028wob?ref=api
+		AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
+		JSONObject bizContent = new JSONObject();
+		//此时还未付款只有商户订单号(不用trade_no)
+		bizContent.put("out_trade_no", orderNo);
+		request.setBizContent(bizContent.toString());
+		AlipayTradeCloseResponse response = alipayClient.execute(request);
+		if(response.isSuccess()){
+			log.info("调用成功，返回结果 ===> " + response.getBody());
+		} else {
+			log.info("调用失败，返回码 ===> " + response.getCode() + ", 返回描述 ===> " + response.getMsg());
+			//当未登陆支付宝或未扫码时,支付宝未创建订单,也就没有取消订单的说法了
+			//throw new RuntimeException("关单接口的调用失败");
 		}
 		
 	}

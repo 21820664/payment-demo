@@ -23,4 +23,11 @@ public interface AliPayService {
 	 * @return void
 	 */
 	void processOrder(Map<String, String> params);
+	
+	/**
+	 * @Description 用户取消订单
+	 * @Param [orderNo] 订单号
+	 * @return void
+	 */
+	void cancelOrder(String orderNo) throws Exception;
 }
