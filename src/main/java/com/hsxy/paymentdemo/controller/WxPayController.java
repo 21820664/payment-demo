@@ -128,14 +128,14 @@ public class WxPayController {
 			//DO : 处理订单:通过解密报文
 			wxPayService.processOrder(plainText);
 			
-			//应答超时
-			//设置响应超时，可以接收到微信支付的重复的支付结果通知。
-			//通知重复，数据库会记录多余的支付日志
-			//TimeUnit.SECONDS.sleep(5);
+				//应答超时
+				//设置响应超时，可以接收到微信支付的重复的支付结果通知。
+				//通知重复，数据库会记录多余的支付日志
+				//TimeUnit.SECONDS.sleep(5);
 			
-			//int i = 3 / 0;
-			// 测试超时应答：添加睡眠时间使应答超时
-			//TimeUnit.SECONDS.sleep(5);
+				//int i = 3 / 0;
+				// 测试超时应答：添加睡眠时间使应答超时
+				//TimeUnit.SECONDS.sleep(5);
 			//成功应答：成功应答必须为200或204，否则就是失败应答(微信写死)
 			//(新版)接收成功：HTTP应答状态码需返回200或204，无需返回应答报文。
 			response.setStatus(200);

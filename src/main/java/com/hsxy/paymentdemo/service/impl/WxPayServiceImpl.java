@@ -81,11 +81,12 @@ public class WxPayServiceImpl implements WxPayService {
 		Gson gson = new Gson();
 		//Map paramsMap = new HashMap();//尽量在初始化时使用泛型
 		HashMap<String, Object> paramsMap = new HashMap<>();
+		// TODO WU: 公共参数最好定义常量(支付宝做得好:AlipayConstants)
 		paramsMap.put("appid", wxPayConfig.getAppid());
 		paramsMap.put("mchid", wxPayConfig.getMchId());
 		paramsMap.put("description", orderInfo.getTitle());
 		paramsMap.put("out_trade_no", orderInfo.getOrderNo());
-		paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.NATIVE_NOTIFY.getType()));// DO WU: 避免输入一大串:https://7d92-115-171-63-135.ngrok.io/api/wx-pay/native/notify
+		paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.NATIVE_NOTIFY.getType()));// DO WU: 避免输入一大串:https://wxpay.loca.lt/api/wx-pay/native/notify
 		//嵌套类型,再创建一个HashMap
 		//Map amountMap = new HashMap();
 		HashMap<String, Object> amountMap = new HashMap<>();

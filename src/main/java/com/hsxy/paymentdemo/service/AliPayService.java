@@ -1,5 +1,7 @@
 package com.hsxy.paymentdemo.service;
 
+import java.util.Map;
+
 /**
  * @name AliPayService
  * @Description
@@ -15,4 +17,10 @@ public interface AliPayService {
 	 */
 	String tradeCreate(Long productId);
 	
+	/**
+	 * @Description 处理订单
+	 * @Param [params] 支付宝返回参数
+	 * @return void
+	 */
+	void processOrder(Map<String, String> params);
 }
