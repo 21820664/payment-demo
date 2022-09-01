@@ -28,10 +28,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 	private ProductMapper productMapper;
 	
 	@Override
-	public OrderInfo createOrderByProductId(Long productId) {
+	public OrderInfo createOrderByProductId(Long productId, String paymentType) {
 		
 		//查找已存在但未支付的订单
-		OrderInfo orderInfo = this.getNoPayOrderByProductId(productId);
+		OrderInfo orderInfo = this.getNoPayOrderByProductId(productId, paymentType);
 		if( orderInfo != null ){
 			return orderInfo;
 		}
@@ -46,6 +46,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		orderInfo.setProductId(productId);
 		orderInfo.setTotalFee(product.getPrice()); //分
 		orderInfo.setOrderStatus(OrderStatus.NOTPAY.getType());
+		orderInfo.setPaymentType(paymentType);
 		
 		//baseMapper <== private OrderInfoMapper orderInfoMapper;
 		baseMapper.insert(orderInfo);
@@ -58,7 +59,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 	 * @Param [productId]
 	 * @return com.hsxy.paymentdemo.entity.OrderInfo
 	 */
-	private OrderInfo getNoPayOrderByProductId(Long productId) {
+	private OrderInfo getNoPayOrderByProductId(Long productId, String paymentType) {
 		//QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();//使用λ表达式方法
 		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
 		
@@ -68,6 +69,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 					// queryWrapper.eq("user_id", userId);
 					//自己另加:还应该价格一致(避免优惠活动影响)
 					.eq(OrderInfo::getTotalFee,productMapper.selectById(productId).getPrice())
+				.eq(OrderInfo::getPaymentType, paymentType)
 					//判断订单创建时间是否小于2小时(避免短时间生成多个未支付订单)<微信支付订单二维码最长生效时间为2小时>
 					.apply("TIMESTAMPDIFF(HOUR, create_time , now()) < 2")
 					//增加查询效率，只查询一条	(和selectOne()搭配,不可少)
@@ -118,7 +120,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 	
 	@Override
 	public List<OrderInfo> getNoPayOrderByDuration(int minutes) {
-		/*//minutes分钟之前的时间(另解)
+		/**minutes分钟之前的时间(另解)
 		Instant instant = Instant.now().minus(Duration.ofMinutes(minutes));
 		QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
 		queryWrapper.le("create_time", instant);*/

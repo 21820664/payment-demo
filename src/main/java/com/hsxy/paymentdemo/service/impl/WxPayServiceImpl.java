@@ -6,6 +6,7 @@ import com.hsxy.paymentdemo.config.WxPayConfig;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
+import com.hsxy.paymentdemo.enums.PayType;
 import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
 import com.hsxy.paymentdemo.enums.wxpay.WxNotifyType;
 import com.hsxy.paymentdemo.enums.wxpay.WxRefundStatus;
@@ -62,7 +63,7 @@ public class WxPayServiceImpl implements WxPayService {
 	public Map<String, Object> nativePay(Long productId) throws IOException {
 		
 		log.info("1.生成订单");
-		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId);
+		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId, PayType.WXPAY.getType());
 		
 		// DO WU: 存入数据库
 		String codeUrl = orderInfo.getCodeUrl();
@@ -532,7 +533,7 @@ public class WxPayServiceImpl implements WxPayService {
 	public Map<String, Object> nativePayV2(Long productId, String remoteAddr) throws Exception {
 		log.info("生成订单");
 		//生成订单<与V3一致>
-		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId);
+		OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId, PayType.WXPAY.getType());
 		String codeUrl = orderInfo.getCodeUrl();
 		if(orderInfo != null && !StringUtils.isEmpty(codeUrl)){
 			log.info("订单已存在，二维码已保存");

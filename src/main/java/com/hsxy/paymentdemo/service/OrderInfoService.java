@@ -13,7 +13,7 @@ public interface OrderInfoService extends IService<OrderInfo> {
 	 * @Param [productId]
 	 * @return com.hsxy.paymentdemo.entity.OrderInfo
 	 */
-	OrderInfo createOrderByProductId(Long productId);
+	OrderInfo createOrderByProductId(Long productId, String paymentType);
 	
 	/**
 	 * @Description 缓存二维码

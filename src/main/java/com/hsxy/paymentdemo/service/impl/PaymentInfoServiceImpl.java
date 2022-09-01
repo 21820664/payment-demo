@@ -57,16 +57,16 @@ public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, Payme
 		/**Gson gson = new Gson();
 		//转换明文:将明文转换为Map
 		Map<String, Object> params = gson.fromJson(plainText, HashMap.class);*/
-		//-商户订单号
+		//- 商户订单号
 		String orderNo = params.get("out_trade_no");
-		//-支付宝支付订单号
+		//- 支付宝支付订单号
 		String transactionId = params.get("trade_no");//区别于微信
-		//-交易类型
+		//- 交易类型
 		//String tradeType = params.get("trade_type");//直接写
-		//-交易状态
+		//- 交易状态
 		String tradeStatus = params.get("trade_status");
 		log.info("交易状态---> {}" , tradeStatus);
-		//-订单金额
+		//- 订单金额
 		String totalAmount = params.get("total_amount");
 		//String先转成BigDecimal 改为分(数据库单位为分) 再转成int
 		int totalAmountInt = new BigDecimal(totalAmount).multiply(new BigDecimal("100")).intValue();//返回金额

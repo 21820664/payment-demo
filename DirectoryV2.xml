@@ -10,4 +10,7 @@
            extension="java"/>
      <tree path="/src/main/java/com/hsxy/paymentdemo/util/HttpClientUtils.java" title="http请求客户端(微信支付V2使用)"
            extension="java"/>
- </trees>
+     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxNotifyType.java" title="微信通知类型:这些API由商户开发"
+           extension="java"/>
+    <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxApiType.java" title="微信API类型" extension="java"/>
+</trees>

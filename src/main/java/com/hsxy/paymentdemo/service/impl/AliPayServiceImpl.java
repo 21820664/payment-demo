@@ -9,6 +9,7 @@ import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.google.gson.Gson;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
+import com.hsxy.paymentdemo.enums.PayType;
 import com.hsxy.paymentdemo.service.AliPayService;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
@@ -47,7 +48,7 @@ public class AliPayServiceImpl implements AliPayService {
 		try {
 			//1.生成订单
 			log.info("生成订单");
-			OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId);
+			OrderInfo orderInfo = orderInfoService.createOrderByProductId(productId, PayType.ALIPAY.getType());
 			//log.info(config.getProperty("wxpay.domain"));//可以获取微信的配置
 			//调用支付宝接口
 			AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
