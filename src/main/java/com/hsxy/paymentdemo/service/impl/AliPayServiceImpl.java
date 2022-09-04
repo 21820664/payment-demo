@@ -19,6 +19,9 @@ import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
 import com.hsxy.paymentdemo.service.RefundInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -319,6 +322,30 @@ public class AliPayServiceImpl implements AliPayService {
 			log.warn("调用失败,响应码 = " + response.getCode() + ",返回结果 = " + response.getBody());
 			//退款单不存在
 			return null;
+		}
+	}
+	
+	@Override
+	public String downloadBill(String billDate, String type) throws AlipayApiException {
+		log.warn("下载账单接口调用,日期: {},账单类型: {}", billDate, type);
+		//获取账单url地址
+		AlipayDataDataserviceBillDownloadurlQueryRequest request = new AlipayDataDataserviceBillDownloadurlQueryRequest();
+		JSONObject bizContent = new JSONObject();
+		bizContent.put("bill_type", type);
+		bizContent.put("bill_date", billDate);
+		request.setBizContent(bizContent.toString());
+		AlipayDataDataserviceBillDownloadurlQueryResponse response = alipayClient.execute(request);
+		
+		if(response.isSuccess()){
+			log.info("调用成功，返回结果 ===> " + response.getBody());
+			//获取账单下载地址
+			HashMap<String, LinkedTreeMap> resultMap = new Gson().fromJson(response.getBody(), HashMap.class);
+			LinkedTreeMap billDownloadurlResponse = resultMap.get("alipay_data_dataservice_bill_downloadurl_query_response");
+			String billDownloadUrl = (String)billDownloadurlResponse.get("bill_download_url");
+			return billDownloadUrl;
+		} else {
+			log.info("调用失败，返回码 ===> " + response.getCode() + ", 返回描述 ===> " + response.getMsg());
+			throw new RuntimeException("申请账单失败");
 		}
 	}
 }

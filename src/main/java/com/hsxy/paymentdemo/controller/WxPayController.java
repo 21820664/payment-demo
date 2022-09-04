@@ -284,6 +284,6 @@ public class WxPayController {
 	public AjaxResult downloadBill(@PathVariable String billDate, @PathVariable String type) throws Exception {
 		log.info("下载账单");
 		String result = wxPayService.downloadBill(billDate, type);
-		return AjaxResult.ok().data("result", result);
+		return AjaxResult.ok().setMessage("获取账单url成功").data("result", result);
 	}
 }

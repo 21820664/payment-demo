@@ -173,4 +173,12 @@ public class AliPayController {
 			return AjaxResult.queryFailed().setMessage("查询退款失败:订单不存在");
 		}
 	}
+	
+	@ApiOperation("下载账单")
+	@GetMapping("/bill/downloadurl/query/{billDate}/{type}")
+	public AjaxResult downloadBill(@PathVariable String billDate, @PathVariable String type) throws Exception {
+		log.info("下载账单");
+		String result = aliPayService.downloadBill(billDate, type);
+		return AjaxResult.ok().setMessage("获取账单url成功").data("result", result);
+	}
 }

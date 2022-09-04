@@ -63,4 +63,12 @@ public interface AliPayService {
 	 * @return java.lang.String
 	 */
 	String queryRefund(String orderNo) throws AlipayApiException;
+	
+	/**
+	 * @Description 下载账单
+	 * @Param [billDate] 订单日期(无法查询当日/月账单) 格式:2022-08-29(日账单) / 2022-08(月账单)
+	 * @Param [type] 查询账单类型 选择:{交易账单(业务账单) trade,资金账单(账务账单) signcustomer}
+	 * @return java.lang.String
+	 */
+	String downloadBill(String billDate, String type) throws AlipayApiException;
 }
