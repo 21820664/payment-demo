@@ -5,14 +5,8 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.domain.AlipayTradeRefundModel;
-import com.alipay.api.request.AlipayTradeCloseRequest;
-import com.alipay.api.request.AlipayTradePagePayRequest;
-import com.alipay.api.request.AlipayTradeQueryRequest;
-import com.alipay.api.request.AlipayTradeRefundRequest;
-import com.alipay.api.response.AlipayTradeCloseResponse;
-import com.alipay.api.response.AlipayTradePagePayResponse;
-import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.alipay.api.request.*;
+import com.alipay.api.response.*;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.hsxy.paymentdemo.entity.OrderInfo;
@@ -264,13 +258,14 @@ public class AliPayServiceImpl implements AliPayService {
 		BigDecimal refund = new BigDecimal(refundInfo.getTotalFee().toString()).divide(new BigDecimal("100"));
 		
 		//另解(支付宝封装,不易出错)
-		//+AlipayTradePagePayModel model = new AlipayTradePagePayModel();
+		//+ AlipayTradePagePayModel model = new AlipayTradePagePayModel();
 		AlipayTradeRefundModel model = new AlipayTradeRefundModel();
 		model.setOutTradeNo(refundInfo.getOrderNo());
+		//~ model.setOutRequestNo(refundInfo.getRefundNo());//退款请求号(可选):如需部分退款，则此参数必传
 		model.setRefundAmount(refund.toString());//需用回String
 		model.setRefundReason(reason);//退款原因(可选)
-		//+model.setSubject(refundsInfo.);
-		//+model.setProductCode("FAST_INSTANT_TRADE_PAY");//销售产品码(当前仅支持该常量:新快捷即时到账产品)
+		//+ model.setSubject(refundsInfo.);
+		//+ model.setProductCode("FAST_INSTANT_TRADE_PAY");//销售产品码(当前仅支持该常量:新快捷即时到账产品)
 		//内置sdk.biz.info,输出日志
 		request.setBizModel(model);
 		
@@ -298,6 +293,32 @@ public class AliPayServiceImpl implements AliPayService {
 					refundInfo.getRefundNo(),
 					response.getBody(),
 					AlipayTradeState.REFUND_ERROR.getType()); //退款失败
+		}
+	}
+	
+	@Override
+	public String queryRefund(String orderNo) throws AlipayApiException {
+		log.info("查退款单接口调用 ===> {}", orderNo);
+		
+		//-AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+		//-AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+		AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
+		JSONObject bizContent = new JSONObject();
+		bizContent.put("out_trade_no", orderNo);//!商户订单号(特殊可选), 与微信不同,必须传入订单号,
+												// 为方便起见(只有退全款操作)将退款请求号也设为商户订单号
+		bizContent.put("out_request_no", orderNo);//!退款请求号(必填):如果在退款请求时未传入，则该值为创建交易时的商户订单号
+		request.setBizContent(bizContent.toString());
+		
+		//- AlipayTradeQueryResponse response = alipayClient.execute(request);
+		//- AlipayTradeRefundResponse response = alipayClient.execute(request);
+		AlipayTradeFastpayRefundQueryResponse response = alipayClient.execute(request);
+		if(response.isSuccess()){
+			log.info("成功, 返回结果 = " + response.getBody());
+			return response.getBody();
+		} else {
+			log.warn("调用失败,响应码 = " + response.getCode() + ",返回结果 = " + response.getBody());
+			//退款单不存在
+			return null;
 		}
 	}
 }

@@ -45,6 +45,11 @@ public class AjaxResult {
 		return new AjaxResult(-1,"失败");
 	}
 	
+	public static AjaxResult queryFailed(){
+
+		return new AjaxResult(441,"查询失败");
+	}
+	
 	/**
 	 * @Description 方便链式调用
 	 * @Param [key, value] {键,值}

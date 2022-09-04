@@ -156,4 +156,21 @@ public class AliPayController {
 		aliPayService.refund(orderNo, reason);
 		return AjaxResult.ok();
 	}
+	
+	/**
+	 * @Description 查询退款：测试用
+	 * @Param [orderNo] 订单号 !非退款单号
+	 * @return com.hsxy.paymentdemo.vo.AjaxResult
+	 */
+	@ApiOperation("查询退款：测试用")
+	@GetMapping("/trade/fastpay/refund/{orderNo}")
+	public AjaxResult queryRefund(@PathVariable String orderNo) throws Exception {
+		log.info("查询退款");
+		String result = aliPayService.queryRefund(orderNo);
+		if (result != null){
+			return AjaxResult.ok().setMessage("查询成功").data("result", result);
+		}else {
+			return AjaxResult.queryFailed().setMessage("查询退款失败:订单不存在");
+		}
+	}
 }

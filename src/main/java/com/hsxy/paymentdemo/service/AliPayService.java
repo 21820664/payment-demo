@@ -56,4 +56,11 @@ public interface AliPayService {
 	 * @return void
 	 */
 	void refund(String orderNo, String reason) throws AlipayApiException;
+	
+	/**
+	 * @Description 查询退款接口调用
+	 * @Param [orderNo] 订单号
+	 * @return java.lang.String
+	 */
+	String queryRefund(String orderNo) throws AlipayApiException;
 }

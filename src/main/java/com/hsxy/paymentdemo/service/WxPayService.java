@@ -57,7 +57,7 @@ public interface WxPayService {
 	
 	/**
 	 * @Description 查询退款接口调用
-	 * @Param [refundNo]
+	 * @Param [refundNo] 退款单号
 	 * @return java.lang.String
 	 */
 	String queryRefund(String refundNo) throws IOException;

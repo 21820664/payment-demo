@@ -34,7 +34,7 @@ public class RefundInfoServiceImpl extends ServiceImpl<RefundInfoMapper, RefundI
 		//根据订单号生成退款订单
 		RefundInfo refundInfo = new RefundInfo();
 		refundInfo.setOrderNo(orderNo);//订单编号
-		refundInfo.setRefundNo(OrderNoUtils.getRefundNo());//退款单编号
+		refundInfo.setRefundNo(OrderNoUtils.getRefundNo());//!退款单编号(是有退款单编号的)
 		refundInfo.setTotalFee(orderInfo.getTotalFee());//原订单金额(分)
 		refundInfo.setRefund(orderInfo.getTotalFee());//退款金额(分)[全额退款]
 		refundInfo.setReason(reason);//退款原因
