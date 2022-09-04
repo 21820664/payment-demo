@@ -18,7 +18,7 @@ import java.util.Map;
 public class PaymentInfoServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentInfo> implements PaymentInfoService {
 	
 	@Override
-	public void createPaymentInfo(String plainText) {
+	public void createPaymentInfoForWxpay(String plainText) {
 		log.info("记录支付日志");
 		Gson gson = new Gson();
 		//转换明文:将明文转换为Map

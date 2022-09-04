@@ -15,4 +15,6 @@
     <tree path="/src/main/java/com/hsxy/paymentdemo/enums/wxpay/WxApiType.java" title="微信API类型" extension="java"/>
     <tree path="/src/main/java/com/hsxy/paymentdemo/controller" icons="NodesKeymapOther"/>
     <tree path="/src/main/java/com/hsxy/paymentdemo/service" icons="NodesModuleGroup"/>
+    <tree path="/src/main/java/com/hsxy/paymentdemo/task/AliPayTask.java" title="支付宝定时任务" extension="java"/>
+    <tree path="/src/main/java/com/hsxy/paymentdemo/task/PayTask.java" title="定时任务整合" extension="java"/>
 </trees>

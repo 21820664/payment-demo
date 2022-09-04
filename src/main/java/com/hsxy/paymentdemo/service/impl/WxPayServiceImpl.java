@@ -17,7 +17,6 @@ import com.hsxy.paymentdemo.service.RefundInfoService;
 import com.hsxy.paymentdemo.service.WxPayService;
 import com.hsxy.paymentdemo.util.HttpClientUtils;
 import com.hsxy.paymentdemo.util.HttpUtils;
-import com.hsxy.paymentdemo.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -26,18 +25,15 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -181,7 +177,7 @@ public class WxPayServiceImpl implements WxPayService {
 				//更新订单状态
 				orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
 				//记录支付日志
-				paymentInfoService.createPaymentInfo(plainText);
+				paymentInfoService.createPaymentInfoForWxpay(plainText);
 			} finally {
 				//要主动释放锁
 				lock.unlock();
@@ -288,7 +284,7 @@ public class WxPayServiceImpl implements WxPayService {
 			//如果确认订单已支付则更新本地订单状态
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
 			//记录支付日志
-			paymentInfoService.createPaymentInfo(result);
+			paymentInfoService.createPaymentInfoForWxpay(result);
 		}
 		if(WxTradeState.NOTPAY.getType().equals(tradeState)){
 			log.warn("核实订单未支付 ===> {}", orderNo);
@@ -650,7 +646,7 @@ public class WxPayServiceImpl implements WxPayService {
 					//更新订单状态
 					orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
 					//记录支付日志
-					paymentInfoService.createPaymentInfo(body);
+					paymentInfoService.createPaymentInfoForWxpay(body);
 				}
 			} finally {
 				//要主动释放锁

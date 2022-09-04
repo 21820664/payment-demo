@@ -39,4 +39,14 @@ public interface AliPayService {
 	 * @return java.lang.String 返回订单查询结果，如果返回null则表示支付宝端尚未创建订单
 	 */
 	String queryOrder(String orderNo) throws AlipayApiException;
+	
+	/**
+	 * @Description 根据订单号查询支付宝支付查单接口，核实订单状态
+	 * * 如果订单未创建，则更新商户端订单状态
+	 * * 如果订单已支付，则更新商户端订单状态，并记录支付日志
+	 * * 如果订单未支付，则调用关单接口关闭订单，并更新商户端订单状态
+	 * @Param [orderNo] 订单号
+	 * @return void
+	 */
+	void checkOrderStatus(String orderNo) throws Exception;
 }

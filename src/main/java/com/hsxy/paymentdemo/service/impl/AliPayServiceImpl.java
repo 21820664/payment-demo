@@ -3,7 +3,6 @@ package com.hsxy.paymentdemo.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
-import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
@@ -12,25 +11,20 @@ import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.PayType;
-import com.hsxy.paymentdemo.enums.wxpay.WxApiType;
+import com.hsxy.paymentdemo.enums.alipay.AliTradeState;
 import com.hsxy.paymentdemo.service.AliPayService;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -194,7 +188,6 @@ public class AliPayServiceImpl implements AliPayService {
 	public String queryOrder(String orderNo) throws AlipayApiException {
 		log.info("查单接口调用 ===> {}", orderNo);
 		
-		
 		AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
 		JSONObject bizContent = new JSONObject();
 		bizContent.put("out_trade_no", orderNo);
@@ -209,5 +202,43 @@ public class AliPayServiceImpl implements AliPayService {
 			//交易不存在
 			return null;
 		}
+	}
+	
+	@Override
+	public void checkOrderStatus(String orderNo) throws Exception {
+		log.warn("根据订单号核实订单状态 ===> {}", orderNo);
+		//调用支付宝支付查单接口
+		String result = this.queryOrder(orderNo);
+		//判断订单状态
+		//1.订单未创建
+		if(result == null){
+			log.warn("核实订单未创建 ===> {}", orderNo);
+			//只更新本地订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
+		}
+		//根据支付宝文档提供的响应JSON
+		HashMap<String, LinkedTreeMap> resultMap = new Gson().fromJson(result, HashMap.class);
+			//获取嵌套JSON数据
+		LinkedTreeMap alipayTradeQueryResponse = resultMap.get("alipay_trade_query_response");
+		//获取微信支付端的订单状态
+		String tradeStatus = (String)alipayTradeQueryResponse.get("trade_status");
+		
+		//2.订单未支付
+		if(AliTradeState.WAIT_BUYER_PAY.getType().equals(tradeStatus)){
+			log.warn("核实订单未支付 ===> {}", orderNo);
+			//如果订单未支付，则调用关单接口
+			this.closeOrder(orderNo);
+			//更新本地订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
+		}
+		//3.订单已支付
+		else if(AliTradeState.TRADE_SUCCESS.getType().equals(tradeStatus)){
+			log.warn("核实订单已支付 ===> {}", orderNo);
+			//如果确认订单已支付则更新本地订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
+			//记录支付日志(从嵌套JSON中获取)
+			paymentInfoService.createPaymentInfoForAlipay(alipayTradeQueryResponse);
+		}
+		
 	}
 }

@@ -14,12 +14,13 @@ import java.util.List;
 
 /**
  * @name WxPayTask
- * @Description
+ * @Description 微信定时任务
  * @author WU
  * @Date 2022/8/27 14:34
  */
 @Slf4j
 @Component
+@Deprecated //已弃用
 public class WxPayTask {
 	/**
 	 * 测试
@@ -45,7 +46,7 @@ public class WxPayTask {
 	 * @Param []
 	 * @return void
 	 */
-	@Scheduled(cron = "0/30 * * * * ?")
+	//@Scheduled(cron = "0/30 * * * * ?")
 	public void orderConfirm() throws Exception {
 		log.info("orderConfirm 定时被执行......");
 		//找出创建超过5分钟，并且未支付的订单
@@ -66,7 +67,7 @@ public class WxPayTask {
 	 * @Param []
 	 * @return void
 	 */
-	@Scheduled(cron = "0/30 * * * * ?")
+	//@Scheduled(cron = "0/30 * * * * ?")
 	public void refundConfirm() throws Exception {
 		log.info("refundConfirm 定时被执行......");
 		//找出申请退款超过5分钟并且未成功的退款单
