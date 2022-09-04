@@ -3,11 +3,14 @@ package com.hsxy.paymentdemo.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
+import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.google.gson.Gson;
 import com.hsxy.paymentdemo.entity.OrderInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
@@ -18,8 +21,10 @@ import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -183,5 +188,26 @@ public class AliPayServiceImpl implements AliPayService {
 			//throw new RuntimeException("关单接口的调用失败");
 		}
 		
+	}
+	
+	@Override
+	public String queryOrder(String orderNo) throws AlipayApiException {
+		log.info("查单接口调用 ===> {}", orderNo);
+		
+		
+		AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+		JSONObject bizContent = new JSONObject();
+		bizContent.put("out_trade_no", orderNo);
+		request.setBizContent(bizContent.toString());
+		AlipayTradeQueryResponse response = alipayClient.execute(request);
+		if(response.isSuccess()){
+			log.info("成功, 返回结果 = " + response.getBody());
+			return response.getBody();
+		} else {
+			log.warn("调用失败,响应码 = " + response.getCode() + ",返回结果 = " + response.getBody());
+			//throw new AlipayApiException("查单接口调用失败");
+			//交易不存在
+			return null;
+		}
 	}
 }

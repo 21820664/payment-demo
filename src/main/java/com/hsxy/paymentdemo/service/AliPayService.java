@@ -1,5 +1,7 @@
 package com.hsxy.paymentdemo.service;
 
+import com.alipay.api.AlipayApiException;
+
 import java.util.Map;
 
 /**
@@ -30,4 +32,11 @@ public interface AliPayService {
 	 * @return void
 	 */
 	void cancelOrder(String orderNo) throws Exception;
+	
+	/**
+	 * @Description 通过支付宝端查询订单
+	 * @Param [orderNo] 订单号
+	 * @return java.lang.String 返回订单查询结果，如果返回null则表示支付宝端尚未创建订单
+	 */
+	String queryOrder(String orderNo) throws AlipayApiException;
 }
