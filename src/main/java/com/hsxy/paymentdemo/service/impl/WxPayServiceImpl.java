@@ -297,12 +297,7 @@ public class WxPayServiceImpl implements WxPayService {
 	
 	@Resource
 	private RefundInfoService refundsInfoService;
-
-	/**
-	 * @Description 退款
-	 * @Param [orderNo, reason] 订单号,原因
-	 * @return void
-	 */
+	
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public void refund(String orderNo, String reason) throws IOException {
@@ -310,7 +305,7 @@ public class WxPayServiceImpl implements WxPayService {
 		//根据订单编号创建退款单
 		RefundInfo refundsInfo = refundsInfoService.createRefundByOrderNo(orderNo, reason);
 		log.info("调用退款API");
-		//调用统一下单API
+		//调用统一收单API
 		String url = wxPayConfig.getDomain().concat(WxApiType.DOMESTIC_REFUNDS.getType());
 		HttpPost httpPost = new HttpPost(url);
 		// 请求body参数
@@ -346,10 +341,11 @@ public class WxPayServiceImpl implements WxPayService {
 			} else {
 				throw new RuntimeException("退款异常, 响应码 = " + statusCode+ ", 退款返回结果 = " + bodyAsString);
 			}
-			//更新订单状态
+			//更新订单状态(退款中)
+			//!区别于支付宝, 异步返回结果,只能先暂时设为退款中,之后从异步通知中获取退款状态
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_PROCESSING);
 			//更新退款单
-			refundsInfoService.updateRefund(bodyAsString);
+			refundsInfoService.updateRefundForWxpay(bodyAsString);
 		} finally {
 			response.close();
 		}
@@ -400,14 +396,14 @@ public class WxPayServiceImpl implements WxPayService {
 			//如果确认退款成功，则更新**订单状态**
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
 			//更新退款单
-			refundsInfoService.updateRefund(result);
+			refundsInfoService.updateRefundForWxpay(result);
 		}
 		if(WxRefundStatus.ABNORMAL.getType().equals(status)){
 			log.warn("核实订单退款异常 ===> {}", refundNo);
 			//如果确认退款异常，则更新**订单状态**
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_ABNORMAL);
 			//更新退款单
-			refundsInfoService.updateRefund(result);
+			refundsInfoService.updateRefundForWxpay(result);
 		}
 		
 	}
@@ -443,7 +439,7 @@ public class WxPayServiceImpl implements WxPayService {
 				/*//记录支付日志
 				paymentInfoService.createPaymentInfo(plainText);*/
 				//更新退款单<**与处理订单的区别**>
-				refundsInfoService.updateRefund(plainText);
+				refundsInfoService.updateRefundForWxpay(plainText);
 			} finally {
 				//要主动释放锁
 				lock.unlock();

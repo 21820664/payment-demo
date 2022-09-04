@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum AliTradeState {
+public enum AlipayTradeState {
 	
 	//交易创建，等待买家付款(未支付)
 	WAIT_BUYER_PAY("WAIT_BUYER_PAY"),
@@ -23,7 +23,13 @@ public enum AliTradeState {
 	TRADE_SUCCESS("TRADE_SUCCESS"),
 	
 	//交易结束，不可退款(默认支付成功一年后)
-	TRADE_FINISHED("TRADE_FINISHED");
+	TRADE_FINISHED("TRADE_FINISHED"),
+	
+	//退款成功
+	REFUND_SUCCESS("REFUND_SUCCESS"),
+	
+	//退款失败
+	REFUND_ERROR("REFUND_ERROR");
 	
 	/**
 	 * 类型

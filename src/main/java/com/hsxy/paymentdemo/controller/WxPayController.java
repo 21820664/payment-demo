@@ -179,8 +179,7 @@ public class WxPayController {
 	 */
 	@ApiOperation("申请退款")
 	@PostMapping("/refunds/{orderNo}/{reason}")
-	public AjaxResult refunds(@PathVariable String orderNo, @PathVariable String reason)
-			throws Exception {
+	public AjaxResult refunds(@PathVariable String orderNo, @PathVariable String reason) throws Exception {
 		log.info("申请退款");
 		wxPayService.refund(orderNo, reason);
 		return AjaxResult.ok();

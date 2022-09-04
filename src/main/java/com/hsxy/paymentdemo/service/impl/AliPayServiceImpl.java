@@ -4,21 +4,26 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
+import com.alipay.api.domain.AlipayTradeRefundModel;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.hsxy.paymentdemo.entity.OrderInfo;
+import com.hsxy.paymentdemo.entity.RefundInfo;
 import com.hsxy.paymentdemo.enums.OrderStatus;
 import com.hsxy.paymentdemo.enums.PayType;
-import com.hsxy.paymentdemo.enums.alipay.AliTradeState;
+import com.hsxy.paymentdemo.enums.alipay.AlipayTradeState;
 import com.hsxy.paymentdemo.service.AliPayService;
 import com.hsxy.paymentdemo.service.OrderInfoService;
 import com.hsxy.paymentdemo.service.PaymentInfoService;
+import com.hsxy.paymentdemo.service.RefundInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -91,7 +96,6 @@ public class AliPayServiceImpl implements AliPayService {
 			model.setSubject(orderInfo.getTitle());
 			model.setProductCode("FAST_INSTANT_TRADE_PAY");//销售产品码(当前仅支持该常量:新快捷即时到账产品)
 			request.setBizModel(model);
-			
 			
 			//执行请求，调用支付宝接口
 			AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
@@ -224,7 +228,7 @@ public class AliPayServiceImpl implements AliPayService {
 		String tradeStatus = (String)alipayTradeQueryResponse.get("trade_status");
 		
 		//2.订单未支付
-		if(AliTradeState.WAIT_BUYER_PAY.getType().equals(tradeStatus)){
+		if(AlipayTradeState.WAIT_BUYER_PAY.getType().equals(tradeStatus)){
 			log.warn("核实订单未支付 ===> {}", orderNo);
 			//如果订单未支付，则调用关单接口
 			this.closeOrder(orderNo);
@@ -232,7 +236,7 @@ public class AliPayServiceImpl implements AliPayService {
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
 		}
 		//3.订单已支付
-		else if(AliTradeState.TRADE_SUCCESS.getType().equals(tradeStatus)){
+		else if(AlipayTradeState.TRADE_SUCCESS.getType().equals(tradeStatus)){
 			log.warn("核实订单已支付 ===> {}", orderNo);
 			//如果确认订单已支付则更新本地订单状态
 			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
@@ -240,5 +244,60 @@ public class AliPayServiceImpl implements AliPayService {
 			paymentInfoService.createPaymentInfoForAlipay(alipayTradeQueryResponse);
 		}
 		
+	}
+	
+	@Resource
+	private RefundInfoService refundsInfoService;
+	
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public void refund(String orderNo, String reason) throws AlipayApiException {
+		log.info("创建退款单记录");
+		//根据订单编号创建退款单
+		RefundInfo refundInfo = refundsInfoService.createRefundByOrderNo(orderNo, reason);
+		log.info("调用退款API");
+		//调用统一收单API
+		AlipayTradeRefundRequest request = new AlipayTradeRefundRequest ();
+		
+		//金额使用大浮点数<区别于微信,微信以分为单位,但支付宝以元为单位>
+		//先转成String再转成BigDecimal
+		BigDecimal refund = new BigDecimal(refundInfo.getTotalFee().toString()).divide(new BigDecimal("100"));
+		
+		//另解(支付宝封装,不易出错)
+		//+AlipayTradePagePayModel model = new AlipayTradePagePayModel();
+		AlipayTradeRefundModel model = new AlipayTradeRefundModel();
+		model.setOutTradeNo(refundInfo.getOrderNo());
+		model.setRefundAmount(refund.toString());//需用回String
+		model.setRefundReason(reason);//退款原因(可选)
+		//+model.setSubject(refundsInfo.);
+		//+model.setProductCode("FAST_INSTANT_TRADE_PAY");//销售产品码(当前仅支持该常量:新快捷即时到账产品)
+		//内置sdk.biz.info,输出日志
+		request.setBizModel(model);
+		
+		//执行请求，调用支付宝接口
+		//+AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
+		AlipayTradeRefundResponse response = alipayClient.execute(request);
+		if(response.isSuccess()){
+			log.info("调用成功，返回结果 ===> " + response.getBody());
+			
+			//更新订单状态
+			//!区别于微信, 非银行卡类同步返回结果,可直接设置
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
+			//更新退款单
+			refundsInfoService.updateRefundForAliPay(
+					refundInfo.getRefundNo(),
+					response.getBody(),
+					AlipayTradeState.REFUND_SUCCESS.getType()); //退款成功
+		} else {
+			log.info("调用失败，返回码 ===> " + response.getCode() + ", 返回描述 ===> " + response.getMsg());
+			//+throw new RuntimeException("创建支付交易失败");
+			//更新订单状态
+			orderInfoService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_ABNORMAL);
+			//更新退款单
+			refundsInfoService.updateRefundForAliPay(
+					refundInfo.getRefundNo(),
+					response.getBody(),
+					AlipayTradeState.REFUND_ERROR.getType()); //退款失败
+		}
 	}
 }
